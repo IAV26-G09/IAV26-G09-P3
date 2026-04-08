@@ -30,6 +30,7 @@ public class NewMonoBehaviourScript : NetworkBehaviour
     TextMeshProUGUI m_ScoreboardText;
     float m_NextScoreboardRefresh;
     readonly StringBuilder m_Sb = new StringBuilder(512);
+    AudioListener m_TemporaryAudioListener;
 
     void Awake()
     {
@@ -52,6 +53,8 @@ public class NewMonoBehaviourScript : NetworkBehaviour
 
         if (IsOwner)
         {
+            EnsureTemporaryAudioListener();
+
             // 1. Nos suscribimos al evento "Cuando una escena termine de cargar"
             SceneManager.sceneLoaded += OnSceneLoaded;
 
@@ -136,7 +139,24 @@ public class NewMonoBehaviourScript : NetworkBehaviour
         if (m_camera == null) return;
 
         var listener = m_camera.GetComponent<AudioListener>();
-        if (listener != null) listener.enabled = true;
+        if (listener != null)
+        {
+            listener.enabled = true;
+            if (m_TemporaryAudioListener != null)
+            {
+                Destroy(m_TemporaryAudioListener.gameObject);
+                m_TemporaryAudioListener = null;
+            }
+        }
+    }
+
+    void EnsureTemporaryAudioListener()
+    {
+        if (!IsOwner) return;
+        if (FindFirstObjectByType<AudioListener>() != null) return;
+
+        var go = new GameObject("TemporaryAudioListener");
+        m_TemporaryAudioListener = go.AddComponent<AudioListener>();
     }
 
     void Update()

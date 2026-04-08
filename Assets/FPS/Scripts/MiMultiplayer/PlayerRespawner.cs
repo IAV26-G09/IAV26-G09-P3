@@ -9,7 +9,7 @@ namespace Unity.FPS.Gameplay
     {
         private Health m_Health;
         private PlayerCharacterController m_CharacterController;
-        GameObject m_LastDamageSource;
+        PlayerNameTag m_LastPlayerAttacker;
 
         void Awake()
         {
@@ -36,8 +36,23 @@ namespace Unity.FPS.Gameplay
 
         void OnDamaged(float damage, GameObject damageSource)
         {
-            if (damageSource != null)
-                m_LastDamageSource = damageSource;
+            // Solo guardamos atacante si es un jugador (para evitar dar kills cuando te mata un bot/entorno).
+            if (damageSource == null)
+            {
+                m_LastPlayerAttacker = null;
+                return;
+            }
+
+            var attackerTag = damageSource.GetComponentInParent<PlayerNameTag>();
+            if (attackerTag != null && attackerTag != GetComponent<PlayerNameTag>())
+            {
+                m_LastPlayerAttacker = attackerTag;
+            }
+            else
+            {
+                // Daño de bot/entorno/no-jugador: no debe dar kill a nadie.
+                m_LastPlayerAttacker = null;
+            }
         }
 
         void HandleDeath()
@@ -49,9 +64,8 @@ namespace Unity.FPS.Gameplay
                 if (myTag != null)
                     myTag.Deaths.Value++;
 
-                var killerTag = m_LastDamageSource != null ? m_LastDamageSource.GetComponentInParent<PlayerNameTag>() : null;
-                if (killerTag != null && killerTag != myTag)
-                    killerTag.Kills.Value++;
+                if (m_LastPlayerAttacker != null && myTag != null && m_LastPlayerAttacker != myTag)
+                    m_LastPlayerAttacker.Kills.Value++;
             }
 
             // Si yo muero, yo inicio la cuenta atrás en mi pantalla
@@ -97,7 +111,7 @@ namespace Unity.FPS.Gameplay
             // (Eso rompe el contador de kills/muertes en partidas host+clientes).
             transform.position = spawnPos;
             transform.rotation = spawnRot;
-            m_LastDamageSource = null;
+            m_LastPlayerAttacker = null;
             if (m_Health != null) m_Health.Revive();
 
             // 3. Le responde ÚNICAMENTE al cliente que acaba de pedirlo
