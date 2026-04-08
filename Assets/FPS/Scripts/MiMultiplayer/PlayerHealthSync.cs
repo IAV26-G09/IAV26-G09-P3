@@ -32,11 +32,11 @@ public class PlayerHealthSync : NetworkBehaviour
         // El ordenador que ha disparado la bala le pide al servidor que aplique el daño
         if (IsServer)
         {
-            ApplyDamageClientRpc(damage, damageSource);
+            ApplyDamageClientRpc(damage, ToNetRefOrNull(damageSource));
         }
         else
         {
-            RequestDamageServerRpc(damage, damageSource);
+            RequestDamageServerRpc(damage, ToNetRefOrNull(damageSource));
         }
     }
 
@@ -67,15 +67,5 @@ public class PlayerHealthSync : NetworkBehaviour
         var netObj = go.GetComponent<NetworkObject>();
         if (netObj == null) return default;
         return netObj;
-    }
-
-    void ApplyDamageClientRpc(float damage, GameObject damageSource)
-    {
-        ApplyDamageClientRpc(damage, ToNetRefOrNull(damageSource));
-    }
-
-    void RequestDamageServerRpc(float damage, GameObject damageSource)
-    {
-        RequestDamageServerRpc(damage, ToNetRefOrNull(damageSource));
     }
 }
