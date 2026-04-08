@@ -10,13 +10,19 @@ namespace Unity.FPS.Game
 
         void Awake()
         {
-            Objective.OnObjectiveCreated += RegisterObjective;
+            if (Objective.ObjectivesEnabled)
+            {
+                Objective.OnObjectiveCreated += RegisterObjective;
+            }
         }
 
         void RegisterObjective(Objective objective) => m_Objectives.Add(objective);
 
         void Update()
         {
+            if (!Objective.ObjectivesEnabled)
+                return;
+
             if (m_Objectives.Count == 0 || m_ObjectivesCompleted)
                 return;
 
@@ -36,7 +42,10 @@ namespace Unity.FPS.Game
 
         void OnDestroy()
         {
-            Objective.OnObjectiveCreated -= RegisterObjective;
+            if (Objective.ObjectivesEnabled)
+            {
+                Objective.OnObjectiveCreated -= RegisterObjective;
+            }
         }
     }
 }
