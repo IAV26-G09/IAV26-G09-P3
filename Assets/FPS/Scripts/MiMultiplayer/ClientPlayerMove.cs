@@ -72,6 +72,11 @@ public class NewMonoBehaviourScript : NetworkBehaviour
         if (IsOwner)
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
+            if (m_TemporaryAudioListener != null)
+            {
+                Destroy(m_TemporaryAudioListener.gameObject);
+                m_TemporaryAudioListener = null;
+            }
         }
     }
 
@@ -162,6 +167,17 @@ public class NewMonoBehaviourScript : NetworkBehaviour
     void Update()
     {
         if (!IsOwner) return;
+
+        // Fix suave: si por algún motivo no hay AudioListener activo (muerte/respawn/cámara toggle en MPPM),
+        // creamos uno temporal y lo retiramos cuando vuelva el de la cámara.
+        if (Time.frameCount % 20 == 0)
+        {
+            if (FindFirstObjectByType<AudioListener>() == null)
+                EnsureTemporaryAudioListener();
+            else
+                EnsureAudioListener();
+        }
+
         if (Time.unscaledTime < m_NextScoreboardRefresh) return;
         m_NextScoreboardRefresh = Time.unscaledTime + scoreboardRefreshInterval;
 

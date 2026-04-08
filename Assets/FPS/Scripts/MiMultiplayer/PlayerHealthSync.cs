@@ -84,6 +84,12 @@ public class PlayerHealthSync : NetworkBehaviour
     {
         if (go == null) return default;
         var netObj = go.GetComponent<NetworkObject>();
+        if (netObj == null)
+        {
+            // A veces el damageSource llega como un hijo (arma/brazo/cámara).
+            // Para atribuir kills correctamente necesitamos el NetworkObject del root del jugador.
+            netObj = go.GetComponentInParent<NetworkObject>();
+        }
         if (netObj == null) return default;
         return netObj;
     }
