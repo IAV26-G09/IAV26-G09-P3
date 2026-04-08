@@ -91,6 +91,15 @@ namespace Unity.FPS.Gameplay
                 spawnRot = spawnPoints[randomIndex].transform.rotation;
             }
 
+            // --- MUY IMPORTANTE ---
+            // Este RPC solo responde al cliente que lo pidió, así que si NO revivimos también en el servidor,
+            // el Health del servidor se queda "muerto" y deja de disparar OnDie en muertes posteriores.
+            // (Eso rompe el contador de kills/muertes en partidas host+clientes).
+            transform.position = spawnPos;
+            transform.rotation = spawnRot;
+            m_LastDamageSource = null;
+            if (m_Health != null) m_Health.Revive();
+
             // 3. Le responde ÚNICAMENTE al cliente que acaba de pedirlo
             ClientRpcParams clientRpcParams = new ClientRpcParams
             {
