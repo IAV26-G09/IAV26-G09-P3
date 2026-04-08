@@ -28,11 +28,42 @@ namespace Unity.FPS.Gameplay
         {
             base.OnNetworkSpawn();
 
-            // Spawn inicial aleatorio (solo servidor) para que no aparezcan todos en el mismo punto "Respawn".
+            // Spawn inicial aleatorio (solo servidor). El host a menudo spawnea antes de que el mapa
+            // haya cargado los RespawnPoint → FindGameObjectsWithTag devuelve 0 y caíamos en (0,5,0).
+            // Esperamos a que existan puntos (el cliente que entra después ya los tiene en escena).
             if (IsServer)
             {
-                TryMoveToRandomSpawnPointAvoidingPlayers();
+                StartCoroutine(ServerInitialSpawnWhenPointsReady());
             }
+        }
+
+        IEnumerator ServerInitialSpawnWhenPointsReady()
+        {
+            const int maxWaits = 180; // ~3 s a 60 fps; suficiente para carga de escena
+            for (int w = 0; w < maxWaits; w++)
+            {
+                var pts = GameObject.FindGameObjectsWithTag("RespawnPoint");
+                if (pts != null && pts.Length > 0)
+                {
+                    ApplyRandomSpawnAtServer();
+                    yield break;
+                }
+
+                yield return null;
+            }
+
+            // Último intento aunque sigan sin existir (mismo comportamiento que antes)
+            ApplyRandomSpawnAtServer();
+        }
+
+        void ApplyRandomSpawnAtServer()
+        {
+            var cc = GetComponent<CharacterController>();
+            if (cc != null) cc.enabled = false;
+
+            TryMoveToRandomSpawnPointAvoidingPlayers();
+
+            if (cc != null) cc.enabled = true;
         }
 
         public override void OnDestroy()
@@ -109,7 +140,7 @@ namespace Unity.FPS.Gameplay
             Quaternion spawnRot = Quaternion.identity;
 
             // 2. Elige uno al azar evitando spawnear encima de otros jugadores, si es posible
-            PickSpawnPointAvoidingPlayers(spawnPoints, out spawnPos, out spawnRot);
+            PickSpawnPointAvoidingPlayers(spawnPoints, m_CharacterController, out spawnPos, out spawnRot);
 
             // --- MUY IMPORTANTE ---
             // Este RPC solo responde al cliente que lo pidió, así que si NO revivimos también en el servidor,
@@ -153,13 +184,18 @@ namespace Unity.FPS.Gameplay
         void TryMoveToRandomSpawnPointAvoidingPlayers()
         {
             GameObject[] spawnPoints = GameObject.FindGameObjectsWithTag("RespawnPoint");
-            PickSpawnPointAvoidingPlayers(spawnPoints, out var spawnPos, out var spawnRot);
+            PickSpawnPointAvoidingPlayers(spawnPoints, m_CharacterController, out var spawnPos, out var spawnRot);
 
             transform.position = spawnPos;
             transform.rotation = spawnRot;
         }
 
-        static void PickSpawnPointAvoidingPlayers(GameObject[] spawnPoints, out Vector3 spawnPos, out Quaternion spawnRot)
+        /// <param name="excludeSelf">
+        /// No tratar nuestra posición actual como "otro jugador" al comprobar solapes (evita que el host,
+        /// aún en la posición por defecto del NetworkManager, bloquee todos los puntos cercanos al centro).
+        /// </param>
+        static void PickSpawnPointAvoidingPlayers(GameObject[] spawnPoints, PlayerCharacterController excludeSelf,
+            out Vector3 spawnPos, out Quaternion spawnRot)
         {
             spawnPos = new Vector3(0, 5, 0);
             spawnRot = Quaternion.identity;
@@ -184,6 +220,9 @@ namespace Unity.FPS.Gameplay
                 for (int i = 0; i < players.Length; i++)
                 {
                     if (players[i] == null) continue;
+                    if (excludeSelf != null && players[i] == excludeSelf)
+                        continue;
+
                     if (Vector3.Distance(players[i].transform.position, candidate) < minDistance)
                     {
                         blocked = true;
