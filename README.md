@@ -1,6 +1,6 @@
 # FPS Online
 
-Se convierte el proyecto Unity original UPV-FPS de la versión 6000.3.9.f1 a *6000.3.12f1*, perdiendo registros del GitLab anterior. ¡Ojo, es importante trabajar también en esta versión, para tener la versión funcional con las herramientas de pruebas de modo multijugador de Unity!
+Se convierte el proyecto Unity original UPV-FPS de la versión 6000.3.9.f1 a *6000.3.12f1*, perdiendo registros del GitLab anterior. ¡Ojo, es importante trabajar también en esta versión, para tener la versión funcional con las herramientas de pruebas de modo multijugador de Unity! Recuerda descargarlo usando Git LFS.
 
 Se ha borrado la plantilla de documentación que venía originalmente con el repositorio, y a continuación se expone una información mínima.
 
