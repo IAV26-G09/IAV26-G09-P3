@@ -454,7 +454,9 @@ namespace Unity.FPS.Gameplay
 
             {
 
-                return m_AimAction.IsPressed();
+                // En algunos modos/escenas el action puede no estar inicializado (o el InputSystem no tener ese mapa).
+                // No debemos tirar NullReference: si no hay acción, simplemente no hay input.
+                return m_AimAction != null && m_AimAction.IsPressed();
 
             }
 
@@ -474,7 +476,7 @@ namespace Unity.FPS.Gameplay
 
             {
 
-                return m_SprintAction.IsPressed();
+                return m_SprintAction != null && m_SprintAction.IsPressed();
 
             }
 
@@ -494,7 +496,7 @@ namespace Unity.FPS.Gameplay
 
             {
 
-                return m_CrouchAction.WasPressedThisFrame();
+                return m_CrouchAction != null && m_CrouchAction.WasPressedThisFrame();
 
             }
 
@@ -514,7 +516,7 @@ namespace Unity.FPS.Gameplay
 
             {
 
-                return m_CrouchAction.WasReleasedThisFrame();
+                return m_CrouchAction != null && m_CrouchAction.WasReleasedThisFrame();
 
             }
 
