@@ -3,8 +3,6 @@ using UnityEngine;
 using UnityEngine.AI;
 using Unity.FPS.Gameplay;
 using Unity.FPS.Game;
-using UnityEngine.InputSystem;
-using System.Collections;
 
 /// <summary>
 /// Controlador automático (bot) para un jugador.
@@ -17,33 +15,20 @@ public class FSM : NetworkBehaviour
     [SerializeField] float repathIntervalSeconds = 1.25f;
     [SerializeField] float stoppingDistance = 1.5f;
 
-    [Header("Respawn")]
-    [SerializeField] float respawnDelaySeconds = 4f;
-    [SerializeField] float minSpawnDistanceFromPlayers = 4f;
-
     NavMeshAgent m_Agent;
     float m_NextRepathTime;
     Health m_Health;
-    Coroutine m_ServerRespawnRoutine;
+
+    void Awake()
+    {
+        // MUY importante en MPPM: esto corre antes de Start() de otros componentes.
+        // El bot NO debe tocar input/cursor ni ejecutar lógica de armas basada en input.
+        DisableInputAndWeaponSystems();
+    }
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-
-        // Solo mueve el bot en la instancia que lo posee (normalmente el host/servidor en vuestro setup).
-        if (!IsOwner)
-        {
-            enabled = false;
-            return;
-        }
-
-        // Importante: si el prefab todavía tiene el script de jugador humano, éste puede reactivar controles y CC
-        // y acabar empujando/arrastrando a otros jugadores.
-        var humanController = GetComponent<NewMonoBehaviourScript>();
-        if (humanController != null) humanController.enabled = false;
-
-        var respawner = GetComponent<Unity.FPS.Gameplay.PlayerRespawner>();
-        if (respawner != null) respawner.enabled = false;
 
         m_Health = GetComponent<Health>();
         if (m_Health != null)
@@ -52,8 +37,9 @@ public class FSM : NetworkBehaviour
             m_Health.OnHealed += OnHealed;
         }
 
-        DisableManualControlComponents();
-        EnsureAgent();
+        // Solo el owner decide el movimiento (owner-authority) para que no haya doble navegación.
+        if (IsOwner)
+            EnsureAgent();
     }
 
     public override void OnNetworkDespawn()
@@ -67,7 +53,7 @@ public class FSM : NetworkBehaviour
         base.OnNetworkDespawn();
     }
 
-    void DisableManualControlComponents()
+    void DisableInputAndWeaponSystems()
     {
         var inputHandler = GetComponent<PlayerInputHandler>();
         if (inputHandler != null) inputHandler.enabled = false;
@@ -75,17 +61,7 @@ public class FSM : NetworkBehaviour
         var weapons = GetComponent<PlayerWeaponsManager>();
         if (weapons != null) weapons.enabled = false;
 
-        var pcc = GetComponent<PlayerCharacterController>();
-        if (pcc != null) pcc.enabled = false;
-
-        var jetpack = GetComponent<Jetpack>();
-        if (jetpack != null) jetpack.enabled = false;
-
-        var playerInput = GetComponent<PlayerInput>();
-        if (playerInput != null) playerInput.enabled = false;
-
-        var cc = GetComponent<CharacterController>();
-        if (cc != null) cc.enabled = false;
+        // No deshabilitamos PlayerRespawner ni Health: el bot debe morir/respawnear igual que los humanos.
     }
 
     void EnsureAgent()
@@ -106,14 +82,6 @@ public class FSM : NetworkBehaviour
     {
         // Nunca mover un cadáver (evita que "se arrastre" tras morir)
         StopAgent();
-
-        // Respawn automático del bot (servidor)
-        if (IsServer)
-        {
-            if (m_ServerRespawnRoutine != null)
-                StopCoroutine(m_ServerRespawnRoutine);
-            m_ServerRespawnRoutine = StartCoroutine(ServerRespawnRoutine());
-        }
     }
 
     void OnHealed(float _)
@@ -141,25 +109,6 @@ public class FSM : NetworkBehaviour
             m_Agent.isStopped = false;
     }
 
-    IEnumerator ServerRespawnRoutine()
-    {
-        yield return new WaitForSeconds(respawnDelaySeconds);
-
-        // Elegimos punto de respawn evitando jugadores ya presentes.
-        var spawnPoints = GameObject.FindGameObjectsWithTag("RespawnPoint");
-        PickSpawnPointAvoidingPlayers(spawnPoints, minSpawnDistanceFromPlayers, out var spawnPos, out var spawnRot);
-
-        var cc = GetComponent<CharacterController>();
-        if (cc != null) cc.enabled = false;
-        transform.SetPositionAndRotation(spawnPos, spawnRot);
-        if (cc != null) cc.enabled = true;
-
-        if (m_Health != null)
-            m_Health.Revive();
-
-        m_ServerRespawnRoutine = null;
-    }
-
     void Update()
     {
         if (!IsOwner) return;
@@ -176,52 +125,6 @@ public class FSM : NetworkBehaviour
 
         if (TryPickRandomNavMeshPoint(transform.position, Mathf.Max(2f, wanderRadius), out var dest))
             m_Agent.SetDestination(dest);
-    }
-
-    static void PickSpawnPointAvoidingPlayers(GameObject[] spawnPoints, float minDistance, out Vector3 spawnPos,
-        out Quaternion spawnRot)
-    {
-        spawnPos = new Vector3(0, 5, 0);
-        spawnRot = Quaternion.identity;
-
-        if (spawnPoints == null || spawnPoints.Length == 0)
-            return;
-
-        var players = Object.FindObjectsByType<PlayerCharacterController>(FindObjectsSortMode.None);
-
-        for (int attempt = 0; attempt < 24; attempt++)
-        {
-            int idx = Random.Range(0, spawnPoints.Length);
-            var sp = spawnPoints[idx];
-            if (sp == null) continue;
-
-            Vector3 candidate = sp.transform.position;
-            bool blocked = false;
-
-            for (int i = 0; i < players.Length; i++)
-            {
-                if (players[i] == null) continue;
-                if (Vector3.Distance(players[i].transform.position, candidate) < minDistance)
-                {
-                    blocked = true;
-                    break;
-                }
-            }
-
-            if (!blocked)
-            {
-                spawnPos = candidate;
-                spawnRot = sp.transform.rotation;
-                return;
-            }
-        }
-
-        var fallback = spawnPoints[Random.Range(0, spawnPoints.Length)];
-        if (fallback != null)
-        {
-            spawnPos = fallback.transform.position;
-            spawnRot = fallback.transform.rotation;
-        }
     }
 
     static bool TryPickRandomNavMeshPoint(Vector3 origin, float radius, out Vector3 result)
