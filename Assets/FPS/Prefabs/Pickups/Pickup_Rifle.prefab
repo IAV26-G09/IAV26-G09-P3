@@ -46,6 +46,7 @@ GameObject:
   - component: {fileID: 7671270577186476435}
   - component: {fileID: 7108868476604323335}
   - component: {fileID: -5698404246229537013}
+  - component: {fileID: 6784191263364779155}
   m_Layer: 0
   m_Name: Pickup_Rifle
   m_TagString: Untagged
@@ -148,7 +149,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3010040255
+  GlobalObjectIdHash: 3905742824
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -174,6 +175,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkPickupSync
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &6784191263364779155
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7671270577186476446}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76bb47a0637077345a32db45d251dc32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: fps.Gameplay::Unity.FPS.Gameplay.LocalWorldPickupRespawn
+  m_WorldPickupPrefab: {fileID: 7671270577186476446}
+  m_DelaySeconds: 30
 --- !u!1001 &4365145818893793330
 PrefabInstance:
   m_ObjectHideFlags: 0

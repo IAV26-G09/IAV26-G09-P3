@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 6275561476046798665}
   - component: {fileID: 824167151778123355}
   - component: {fileID: -7733730219961512538}
+  - component: {fileID: 592247812613323593}
   m_Layer: 0
   m_Name: Pickup_Health
   m_TagString: Untagged
@@ -137,7 +138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 642023742
+  GlobalObjectIdHash: 3032268006
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -163,6 +164,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkPickupSync
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &592247812613323593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2620131183356007192}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76bb47a0637077345a32db45d251dc32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: fps.Gameplay::Unity.FPS.Gameplay.LocalWorldPickupRespawn
+  m_WorldPickupPrefab: {fileID: 2620131183356007192}
+  m_DelaySeconds: 30
 --- !u!1 &7296493021711450243
 GameObject:
   m_ObjectHideFlags: 0
