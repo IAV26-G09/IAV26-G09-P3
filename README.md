@@ -6,20 +6,30 @@ Se ha borrado la plantilla de documentación que venía originalmente con el rep
 
 ## Información básica
 
-Human_Prefab representa al jugador humano y UCM_Bot es la IA que hay que programar si se quiere tener un bot contra el que enfrentarse.
+*Human_Prefab* representa al jugador humano y *UCM_Bot* es la IA que hay que programar si se quiere tener un bot contra el que enfrentarse.
 
-Lo más relevante que puede encontrarse en la raíz del prefab como Human_Prefab:
+### Human_Prefab
+Ruta: Assets/FPS/Scripts/MiMultiplayer/Human_Prefab.prefab
+
+Es el “paquete completo” del jugador: control FPS, cámara, armas, vida/daño y los componentes oficiales de Netcode que permiten hacer multijugador en Unity.
+
+Lo más relevante que puede encontrarse en la raíz de este prefab es esto:
 
 * NetworkObject: identidad de red del jugador.
-* PlayerInput (Input System): componente de Unity que gestiona dispositivos/mapas.
+* PlayerInput (Input System): componente de Unity que gestiona dispositivos/mapas de entrada.
 * NewMonoBehaviourScript (tu “ClientPlayerMove” real, el hombre es que no está bien puesto): habilita cámara/controles sólo para el propietario, crea el HUD del marcador, etc.
 * PlayerRespawner: maneja muerte/respawn en red (RPC al server y respawn al cliente).
 * ClientNetworkTransform: sincroniza transform (owner authority en tu setup).
 * PlayerHealthSync: sincroniza vida/estado.
 * PlayerVotingSync (solo en Human): sistema de votación/acciones especiales.
 * PlayerNameTag: nombre/kills/deaths en red.
-* ClientNetworkAnimator: animación sincronizada.
-* Rigging / IK / Weapon sync: WeaponIKSync, ThirdPersonWeaponSync, RigBuilder, constraints, etc.
+* ClientNetworkAnimator: Script para hacer animación sincronizada.
+* Rigging / IK / Weapon sync: WeaponIKSync, ThirdPersonWeaponSync, RigBuilder, constraints, etc. Son scripts de sincronización (por ejemplo PlayerHealthSync, ThirdPersonWeaponSync, LocalVisibility...).
 * UI (CanvasScaler, GraphicRaycaster, TMP): el canvas world-space del nametag y elementos.
+* CharacterController: componente nativo de Unity para mover un “personaje tipo cápsula” en el mundo sin usar un Rigidbody. Gestiones colisiones, deslizamiento, movimiento 'cinemático', grounding básico... pero no hace nada más.
+* PlayerCharacterController: Script de este proyecto que hace las veces de MENTE del CharacterController, lee la entrada con PlayerInputHandler, y lo convierte en movimiento, rotación, coordina la cámara, la animación, está pendiente de la salud, muerte, apuntado, etc. 
+
+### UCM_Bot
+Ruta: Assets/FPS/Scripts/MiMultiplayer/UCM_Bot.prefab
 
 En UCM_Bot encontramos componentes muy parecidos, aunque se ha añadido FSM como ejemplo de dónde podría ir una máquina de estados que tome las decisiones de ese bot.
