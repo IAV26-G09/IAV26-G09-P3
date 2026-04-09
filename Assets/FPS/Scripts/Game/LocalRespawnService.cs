@@ -45,7 +45,10 @@ namespace Unity.FPS.Game
         {
             if (pickupInstance == null) return;
             EnsureExists();
-            Instance.StartCoroutine(Instance.PickupRespawnRoutine(pickupInstance, delaySeconds));
+            var pos = pickupInstance.transform.position;
+            var rot = pickupInstance.transform.rotation;
+            Instance.StartCoroutine(Instance.CloneHierarchyRespawnRoutine(pickupInstance, pos, rot, delaySeconds, null,
+                "Pickup respawneado localmente"));
         }
 
         /// <summary>Respawn desde un prefab del Project en posición/rotación fijas (sin clonar la instancia actual).</summary>
@@ -58,27 +61,39 @@ namespace Unity.FPS.Game
                 Instance.ProjectPrefabRoutine(projectPrefab, position, rotation, delaySeconds, parent));
         }
 
-        /// <summary>Respawn de enemigo desde prefab del Project (posición inicial guardada por el caller).</summary>
+        /// <summary>Respawn de enemigo desde prefab del Project (solo referencias de carpeta Project, no instancias en escena).</summary>
         public static void ScheduleEnemyPrefab(GameObject enemyPrefab, Vector3 position, Quaternion rotation,
             float delaySeconds, Transform parent)
         {
             ScheduleProjectPrefabAt(enemyPrefab, position, rotation, delaySeconds, parent);
         }
 
-        IEnumerator PickupRespawnRoutine(GameObject src, float delaySeconds)
+        /// <summary>
+        /// Clona la instancia viva antes del Destroy (como los pickups). Sirve cuando el campo "prefab" apunta a la propia instancia en escena.
+        /// </summary>
+        public static void ScheduleEnemyCloneAfterDestroy(GameObject enemyInstance, Vector3 position, Quaternion rotation,
+            float delaySeconds, Transform parent)
         {
-            // Todo lo que sigue es síncrono antes del primer yield: src sigue vivo aquí.
-            Vector3 pos = src.transform.position;
-            Quaternion rot = src.transform.rotation;
+            if (enemyInstance == null) return;
+            EnsureExists();
+            Instance.StartCoroutine(Instance.CloneHierarchyRespawnRoutine(enemyInstance, position, rotation, delaySeconds,
+                parent, "Enemigo respawneado localmente"));
+        }
 
-            var holder = new GameObject("~LocalPickupTpl_" + src.GetInstanceID());
+        /// <summary>
+        /// Clona <paramref name="src"/> de inmediato (antes del primer yield), espera y spawnea. <paramref name="parent"/> opcional en la reaparición.
+        /// </summary>
+        IEnumerator CloneHierarchyRespawnRoutine(GameObject src, Vector3 pos, Quaternion rot, float delaySeconds,
+            Transform parent, string logLabel)
+        {
+            var holder = new GameObject("~LocalCloneTpl_" + src.GetInstanceID());
             holder.SetActive(false);
             DontDestroyOnLoad(holder);
 
             var template = Instantiate(src, holder.transform);
             template.name = src.name + "_RespawnTpl";
             template.SetActive(false);
-            StripPickupForLocalRespawn(template);
+            StripNetcodeForLocalInstance(template);
 
             if (delaySeconds > 0f)
                 yield return new WaitForSecondsRealtime(delaySeconds);
@@ -86,9 +101,10 @@ namespace Unity.FPS.Game
             if (template == null)
                 yield break;
 
-            var spawned = Instantiate(template, pos, rot);
+            Transform safeParent = parent != null && parent ? parent : null;
+            var spawned = Instantiate(template, pos, rot, safeParent);
             spawned.SetActive(true);
-            Debug.Log($"[LocalRespawnService] Pickup respawneado localmente en {pos}", spawned);
+            Debug.Log($"[LocalRespawnService] {logLabel} en {pos}", spawned);
         }
 
         IEnumerator ProjectPrefabRoutine(GameObject prefab, Vector3 position, Quaternion rotation, float delaySeconds,
@@ -103,7 +119,7 @@ namespace Unity.FPS.Game
             Debug.Log($"[LocalRespawnService] Objeto respawneado desde prefab en {position}", spawned);
         }
 
-        static void StripPickupForLocalRespawn(GameObject root)
+        static void StripNetcodeForLocalInstance(GameObject root)
         {
             foreach (var mb in root.GetComponentsInChildren<MonoBehaviour>(true))
             {

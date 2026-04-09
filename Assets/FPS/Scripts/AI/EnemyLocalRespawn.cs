@@ -9,7 +9,7 @@ namespace Unity.FPS.AI
     /// </summary>
     public class EnemyLocalRespawn : MonoBehaviour
     {
-        [Tooltip("Mismo prefab del enemigo (HoverBot, Turret, etc.). Si está vacío, no hay respawn.")]
+        [Tooltip("Opcional: prefab desde la carpeta Project. Si arrastras la instancia de la escena (o lo dejas vacío), el respawn clona el enemigo al morir (como los items).")]
         [SerializeField] GameObject m_EnemyPrefab;
 
         [SerializeField] float m_DelaySeconds = 30f;
@@ -28,18 +28,17 @@ namespace Unity.FPS.AI
         /// <summary>Llamado desde EnemyController al morir (antes de Destroy).</summary>
         public void OnEnemyDiedScheduleLocalRespawn()
         {
-            if (m_EnemyPrefab == null)
+            // Prefab del Project: instanciar desde asset (referencia estable tras Destroy).
+            if (m_EnemyPrefab != null && !m_EnemyPrefab.scene.IsValid())
             {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                Debug.LogWarning(
-                    "[EnemyLocalRespawn] m_EnemyPrefab está vacío: no hay respawn local. Asigna el mismo prefab del enemigo en el inspector.",
-                    this);
-#endif
+                LocalRespawnService.ScheduleEnemyPrefab(m_EnemyPrefab, m_InitialPosition, m_InitialRotation,
+                    m_DelaySeconds, m_Parent);
                 return;
             }
 
-            LocalRespawnService.ScheduleEnemyPrefab(m_EnemyPrefab, m_InitialPosition, m_InitialRotation, m_DelaySeconds,
-                m_Parent);
+            // Instancia en escena o campo vacío: clonar la jerarquía viva en este frame (igual que pickups).
+            LocalRespawnService.ScheduleEnemyCloneAfterDestroy(gameObject, m_InitialPosition, m_InitialRotation,
+                m_DelaySeconds, m_Parent);
         }
     }
 }
