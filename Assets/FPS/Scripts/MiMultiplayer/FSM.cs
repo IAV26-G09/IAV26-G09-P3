@@ -41,11 +41,15 @@ public class FSM : NetworkBehaviour
         if (!IsOwner)
         {
             DisableCameraAndAudioForNonOwner();
-            return;
         }
 
-        DisableHumanControllersThatFightNavMeshAgent();
-        EnsureAgent();
+        // La IA del bot corre en el servidor para ser determinista y no depender de un cliente concreto.
+        // Los clientes solo visualizan el resultado mediante NetworkTransform (server authoritative para bots).
+        if (IsServer)
+        {
+            DisableHumanControllersThatFightNavMeshAgent();
+            EnsureAgent();
+        }
     }
 
     void DisableCameraAndAudioForNonOwner()
@@ -149,7 +153,7 @@ public class FSM : NetworkBehaviour
 
     void Update()
     {
-        if (!IsOwner) return;
+        if (!IsServer) return;
         if (m_Health != null && m_Health.CurrentHealth <= 0f) return;
         if (m_Agent == null || !m_Agent.enabled) return;
         if (!m_Agent.isOnNavMesh) return;

@@ -114,13 +114,19 @@ namespace Unity.FPS.Gameplay
                     m_LastPlayerAttacker.Kills.Value++;
             }
 
-            // Si yo muero, yo inicio la cuenta atrás en mi pantalla (humanos) o como bot (sin UI).
-            if (!IsOwner) return;
+            bool isBot = GetComponent<FSM>() != null;
 
-            if (GetComponent<FSM>() != null)
-                StartCoroutine(BotDeathRoutine());
-            else
-                StartCoroutine(DeathRoutine());
+            // Bot: el servidor siempre gestiona su respawn (dedicated o host).
+            if (isBot)
+            {
+                if (IsServer)
+                    StartCoroutine(BotDeathRoutineServer());
+                return;
+            }
+
+            // Humano: el owner inicia la cuenta atrás (UI local) y pide respawn al servidor.
+            if (!IsOwner) return;
+            StartCoroutine(DeathRoutine());
         }
 
         IEnumerator DeathRoutine()
@@ -147,8 +153,20 @@ namespace Unity.FPS.Gameplay
             RequestRespawnServerRpc();
         }
 
+        IEnumerator BotDeathRoutineServer()
+        {
+            // En server dedicated el bot no tiene "owner" cliente que dispare el RPC.
+            yield return new WaitForSeconds(4f);
+            ServerPerformRespawn();
+        }
+
         [ServerRpc]
         void RequestRespawnServerRpc(ServerRpcParams rpcParams = default)
+        {
+            ServerPerformRespawn();
+        }
+
+        void ServerPerformRespawn()
         {
             // 1. EL SERVIDOR: Busca todos los puntos de aparición en el mapa
             GameObject[] spawnPoints = GameObject.FindGameObjectsWithTag("RespawnPoint");
@@ -167,13 +185,8 @@ namespace Unity.FPS.Gameplay
             m_LastPlayerAttacker = null;
             if (m_Health != null) m_Health.Revive();
 
-            // 3. Le responde ÚNICAMENTE al cliente que acaba de pedirlo
-            ClientRpcParams clientRpcParams = new ClientRpcParams
-            {
-                Send = new ClientRpcSendParams { TargetClientIds = new ulong[] { rpcParams.Receive.SenderClientId } }
-            };
-
-            RespawnClientRpc(spawnPos, spawnRot, clientRpcParams);
+            // 3. Informamos a TODOS los clientes para que el respawn sea visible también en remotos.
+            RespawnClientRpc(spawnPos, spawnRot);
         }
 
         [ClientRpc]
