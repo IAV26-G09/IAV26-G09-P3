@@ -3,9 +3,8 @@ using UnityEngine;
 namespace Unity.FPS.Gameplay
 {
     /// <summary>
-    /// Respawn local tras un delay. Si asignas el prefab del proyecto en "World Pickup Prefab", se usa ese.
-    /// Si no (o si arrastraste la instancia de escena), se genera una plantilla en Awake sin componentes de Netcode
-    /// para poder instanciar sin ServerRpc ni referencias rotas.
+    /// Respawn local tras un delay. Opcional: prefab del Project en "World Pickup Prefab".
+    /// Si está vacío, se clona este GameObject como plantilla (sin Netcode) la primera vez que hace falta.
     /// </summary>
     public class LocalWorldPickupRespawn : MonoBehaviour
     {
@@ -16,6 +15,11 @@ namespace Unity.FPS.Gameplay
         [SerializeField] float m_DelaySeconds = 30f;
 
         GameObject m_LocalSpawnTemplate;
+
+        /// <summary>
+        /// Evita recursión: Instantiate(this) dispara Awake en el clon en el mismo frame.
+        /// </summary>
+        static int s_BuildDepth;
 
         public float DelaySeconds
         {
@@ -30,7 +34,8 @@ namespace Unity.FPS.Gameplay
 
         void Awake()
         {
-            if (gameObject.name.EndsWith("_LocalRespawnTemplate", System.StringComparison.Ordinal))
+            // El clon interno de Instantiate(this) despierta en medio de BuildHiddenLocalTemplate: no re-entrar.
+            if (s_BuildDepth > 0)
                 return;
 
             BuildHiddenLocalTemplate();
@@ -40,16 +45,23 @@ namespace Unity.FPS.Gameplay
         {
             if (m_LocalSpawnTemplate != null) return;
 
-            // Padre inactivo: el clon no recibe Awake/Start hasta que exista; evita recursión al duplicar este GO.
-            var holder = new GameObject("~PickupRespawnHolder_" + gameObject.GetInstanceID());
-            holder.SetActive(false);
-            Object.DontDestroyOnLoad(holder);
+            s_BuildDepth++;
+            try
+            {
+                var holder = new GameObject("~PickupRespawnHolder_" + gameObject.GetInstanceID());
+                holder.SetActive(false);
+                Object.DontDestroyOnLoad(holder);
 
-            m_LocalSpawnTemplate = Instantiate(gameObject, holder.transform);
-            m_LocalSpawnTemplate.name = gameObject.name + "_LocalRespawnTemplate";
-            m_LocalSpawnTemplate.SetActive(false);
+                m_LocalSpawnTemplate = Instantiate(gameObject, holder.transform);
+                m_LocalSpawnTemplate.name = gameObject.name + "_LocalRespawnTemplate";
+                m_LocalSpawnTemplate.SetActive(false);
 
-            StripNetcodeAndNetworkPickupSync(m_LocalSpawnTemplate);
+                StripNetcodeAndNetworkPickupSync(m_LocalSpawnTemplate);
+            }
+            finally
+            {
+                s_BuildDepth--;
+            }
         }
 
         static void StripNetcodeAndNetworkPickupSync(GameObject root)
@@ -75,30 +87,28 @@ namespace Unity.FPS.Gameplay
         /// </summary>
         public void TryScheduleRespawnAtCurrentTransform()
         {
+            if (m_WorldPickupPrefab == null && m_LocalSpawnTemplate == null)
+                BuildHiddenLocalTemplate();
+
             Vector3 pos = transform.position;
             Quaternion rot = transform.rotation;
             Transform parent = transform.parent;
 
-            // 1) Prefab de proyecto (no pertenece a una escena cargada como instancia)
             if (m_WorldPickupPrefab != null && !m_WorldPickupPrefab.scene.IsValid())
             {
                 Unity.FPS.Game.LocalRespawnScheduler.Schedule(m_WorldPickupPrefab, pos, rot, m_DelaySeconds, parent);
                 return;
             }
 
-            // 2) Plantilla local (misma jerarquía que este pickup, sin Netcode)
             if (m_LocalSpawnTemplate != null)
             {
                 Unity.FPS.Game.LocalRespawnScheduler.Schedule(m_LocalSpawnTemplate, pos, rot, m_DelaySeconds, null);
                 return;
             }
 
-            if (m_WorldPickupPrefab != null && m_WorldPickupPrefab.scene.IsValid())
-            {
-                Debug.LogWarning(
-                    "[LocalWorldPickupRespawn] Asigna el prefab desde el Project, o deja el campo vacío para usar la plantilla automática.",
-                    this);
-            }
+            Debug.LogWarning(
+                "[LocalWorldPickupRespawn] No se pudo programar el respawn: sin plantilla ni prefab válido. ¿Hay componente en este pickup?",
+                this);
         }
     }
 }
