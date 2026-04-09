@@ -164,8 +164,12 @@ namespace Unity.FPS.Gameplay
             // Si el jugador está muerto, no debería poder moverse/disparar durante la animación de muerte.
             bool isDead = m_PlayerCharacterController != null && m_PlayerCharacterController.IsDead;
 
+            // En algunas escenas/modos (MPPM, bootstrap parcial) el GameFlowManager puede no existir todavía.
+            // No debemos tirar NullReference: si no existe, asumimos que la partida no está "ending".
+            bool gameIsEnding = m_GameFlowManager != null && m_GameFlowManager.GameIsEnding;
+
             return Cursor.lockState == CursorLockMode.Locked
-                   && !m_GameFlowManager.GameIsEnding
+                   && !gameIsEnding
                    && !isDead;
 
         }
