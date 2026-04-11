@@ -72,12 +72,29 @@ public class BotGameplayActions : MonoBehaviour
     }
 
     /// <summary>
+    /// Comprueba si la escena activa tiene datos de NavMesh bakeados (p. ej. ya cargó el mapa de juego).
+    /// Útil para no llamar a <see cref="NavMeshAgent"/> mientras sigue activa la escena de menú.
+    /// </summary>
+    public static bool SceneHasNavMeshData()
+    {
+        var tri = NavMesh.CalculateTriangulation();
+        return tri.indices != null && tri.indices.Length >= 3;
+    }
+
+    /// <summary>
     /// Prepara o configura el <see cref="NavMeshAgent"/> para el modo bot (servidor).
+    /// No crea el componente hasta que exista NavMesh en escena; si el transform aún no está sobre la malla,
+    /// intenta un <see cref="NavMeshAgent.Warp"/> al punto más cercano.
     /// </summary>
     public void EnsureNavMeshAgentReady()
     {
         if (m_NavMeshAgent == null && m_AutoCreateNavMeshAgent)
+        {
+            if (!SceneHasNavMeshData())
+                return;
+
             m_NavMeshAgent = gameObject.AddComponent<NavMeshAgent>();
+        }
 
         if (m_NavMeshAgent == null)
             return;
@@ -87,6 +104,12 @@ public class BotGameplayActions : MonoBehaviour
         m_NavMeshAgent.autoBraking = true;
         m_NavMeshAgent.updatePosition = true;
         m_NavMeshAgent.updateRotation = true;
+
+        if (!m_NavMeshAgent.isOnNavMesh &&
+            NavMesh.SamplePosition(transform.position, out var hit, 25f, NavMesh.AllAreas))
+        {
+            m_NavMeshAgent.Warp(hit.position);
+        }
     }
 
     /// <summary>Ordena moverse hacia un punto del mundo (debe ser alcanzable por NavMesh).</summary>

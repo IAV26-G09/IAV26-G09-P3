@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -91,11 +92,13 @@ public class FSM : NetworkBehaviour
             DisableCameraAndAudioForNonOwner();
 
         if (IsServer)
-            EnterInitialStateOnServer();
+            StartCoroutine(ServerInitBotWhenGameplaySceneReady());
     }
 
     public override void OnNetworkDespawn()
     {
+        StopAllCoroutines();
+
         if (m_Health != null)
         {
             m_Health.OnDie -= OnBotDied;
@@ -105,12 +108,29 @@ public class FSM : NetworkBehaviour
         base.OnNetworkDespawn();
     }
 
-    void EnterInitialStateOnServer()
+    /// <summary>
+    /// El host spawnea el player object en cuanto arranca la red; la escena de juego (NavMesh, ActorsManager)
+    /// carga justo después. Esperamos a que existan antes de crear el NavMeshAgent (evita el error de Unity).
+    /// </summary>
+    IEnumerator ServerInitBotWhenGameplaySceneReady()
     {
-        // Preparar navegación en servidor.
+        const float timeoutSeconds = 45f;
+        float elapsed = 0f;
+
+        while (elapsed < timeoutSeconds)
+        {
+            bool navReady = BotGameplayActions.SceneHasNavMeshData();
+            bool actorsReady = Object.FindFirstObjectByType<ActorsManager>() != null;
+
+            if (navReady && actorsReady)
+                break;
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
         m_Actions.EnsureNavMeshAgentReady();
 
-        // Desactivamos el stack humano (CharacterController + PCC) para que no luche con NavMeshAgent.
         DisableHumanLocomotionThatConflictsWithNavMesh();
 
         TransitionTo(BotState.Wandering);
