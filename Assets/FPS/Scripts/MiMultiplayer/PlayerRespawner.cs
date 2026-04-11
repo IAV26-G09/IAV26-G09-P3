@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.AI;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.FPS.Game;
@@ -8,15 +9,12 @@ namespace Unity.FPS.Gameplay
 {
     public class PlayerRespawner : NetworkBehaviour
     {
-        [Header("Spawn en suelo")]
-        [Tooltip("Capas contra las que proyectamos un rayo hacia abajo para alinear los pies al suelo (suelo/escenario).")]
-        [SerializeField] LayerMask m_SpawnGroundLayers = Physics.DefaultRaycastLayers;
+        [Header("Spawn — puntos RespawnPoint")]
+        [Tooltip("Separación mínima en el suelo (XZ) respecto a otros jugadores para considerar un punto \"libre\".")]
+        [SerializeField] float m_MinHorizontalSeparationFromPlayers = 3f;
 
-        [Tooltip("Distancia máxima del rayo hacia abajo desde el punto de spawn (marcador puede estar flotando).")]
-        [SerializeField] float m_GroundSnapMaxDistance = 48f;
-
-        [Tooltip("Pequeño offset por encima del suelo para evitar penetraciones que disparen overlap recovery (personaje 'subido' al techo).")]
-        [SerializeField] float m_GroundSnapYOffset = 0.08f;
+        [Tooltip("Radio usado solo en el fallback NavMesh: proyectar el marcador sobre la malla cerca del suelo.")]
+        [SerializeField] float m_NavMeshSampleRadius = 4f;
 
         private Health m_Health;
         private PlayerCharacterController m_CharacterController;
@@ -27,7 +25,6 @@ namespace Unity.FPS.Gameplay
             m_Health = GetComponent<Health>();
             m_CharacterController = GetComponent<PlayerCharacterController>();
 
-            // Nos suscribimos a nuestra propia muerte
             if (m_Health != null)
             {
                 m_Health.OnDie += HandleDeath;
@@ -39,47 +36,40 @@ namespace Unity.FPS.Gameplay
         {
             base.OnNetworkSpawn();
 
-            // Spawn inicial aleatorio (solo servidor). El host a menudo spawnea antes de que el mapa
-            // haya cargado los RespawnPoint → FindGameObjectsWithTag devuelve 0 y caíamos en (0,5,0).
-            // Esperamos a que existan puntos (el cliente que entra después ya los tiene en escena).
             if (IsServer)
-            {
                 StartCoroutine(ServerInitialSpawnWhenPointsReady());
-            }
         }
 
         IEnumerator ServerInitialSpawnWhenPointsReady()
         {
-            // Stagger: reduce probabilidad de que 2 jugadores elijan el mismo RespawnPoint en el mismo frame.
-            // (Especialmente en MPPM / host+cliente entrando casi a la vez.)
             yield return new WaitForSeconds(0.05f * (OwnerClientId % 5));
 
-            const int maxWaits = 180; // ~3 s a 60 fps; suficiente para carga de escena
+            const int maxWaits = 180;
             for (int w = 0; w < maxWaits; w++)
             {
                 var pts = GameObject.FindGameObjectsWithTag("RespawnPoint");
                 if (pts != null && pts.Length > 0)
                 {
-                    ApplyRandomSpawnAtServer();
+                    ApplyInitialSpawnAtServer();
                     yield break;
                 }
 
                 yield return null;
             }
 
-            // Último intento aunque sigan sin existir (mismo comportamiento que antes)
-            ApplyRandomSpawnAtServer();
+            ApplyInitialSpawnAtServer();
         }
 
-        void ApplyRandomSpawnAtServer()
+        void ApplyInitialSpawnAtServer()
         {
             var cc = GetComponent<CharacterController>();
             if (cc != null) cc.enabled = false;
 
-            TryMoveToRandomSpawnPointAvoidingPlayers();
-            var grounded = transform.position;
-            SnapSpawnPositionToGround(ref grounded);
-            transform.position = grounded;
+            var spawnPoints = GameObject.FindGameObjectsWithTag("RespawnPoint");
+            PickSpawnTransform(spawnPoints, m_CharacterController, out var spawnPos, out var spawnRot);
+
+            transform.position = spawnPos;
+            transform.rotation = spawnRot;
 
             Physics.SyncTransforms();
             if (cc != null) cc.enabled = true;
@@ -97,7 +87,6 @@ namespace Unity.FPS.Gameplay
 
         void OnDamaged(float damage, GameObject damageSource)
         {
-            // Solo guardamos atacante si es un jugador (para evitar dar kills cuando te mata un bot/entorno).
             if (damageSource == null)
             {
                 m_LastPlayerAttacker = null;
@@ -111,14 +100,12 @@ namespace Unity.FPS.Gameplay
             }
             else
             {
-                // Daño de bot/entorno/no-jugador: no debe dar kill a nadie.
                 m_LastPlayerAttacker = null;
             }
         }
 
         void HandleDeath()
         {
-            // El servidor contabiliza muertes/killers (si aplica)
             if (IsServer)
             {
                 var myTag = GetComponent<PlayerNameTag>();
@@ -131,7 +118,6 @@ namespace Unity.FPS.Gameplay
 
             bool isBot = GetComponent<FSM>() != null;
 
-            // Bot: el servidor siempre gestiona su respawn (dedicated o host).
             if (isBot)
             {
                 if (IsServer)
@@ -139,7 +125,6 @@ namespace Unity.FPS.Gameplay
                 return;
             }
 
-            // Humano: el owner inicia la cuenta atrás (UI local) y pide respawn al servidor.
             if (!IsOwner) return;
             StartCoroutine(DeathRoutine());
         }
@@ -157,20 +142,17 @@ namespace Unity.FPS.Gameplay
             if (fadeCanvas != null && fadeCanvas.gameObject != null)
                 fadeCanvas.gameObject.SetActive(true);
 
-            // Le pedimos al servidor (Host) que nos busque un sitio para reaparecer
             RequestRespawnServerRpc();
         }
 
         IEnumerator BotDeathRoutine()
         {
-            // Bot: misma latencia de respawn, pero sin tocar UI/cursor.
             yield return new WaitForSeconds(4f);
             RequestRespawnServerRpc();
         }
 
         IEnumerator BotDeathRoutineServer()
         {
-            // En server dedicated el bot no tiene "owner" cliente que dispare el RPC.
             yield return new WaitForSeconds(4f);
             ServerPerformRespawn();
         }
@@ -183,19 +165,12 @@ namespace Unity.FPS.Gameplay
 
         void ServerPerformRespawn()
         {
-            // 1. EL SERVIDOR: Busca todos los puntos de aparición en el mapa
             GameObject[] spawnPoints = GameObject.FindGameObjectsWithTag("RespawnPoint");
-            Vector3 spawnPos = new Vector3(0, 5, 0); // Por si se te olvida poner puntos, caes del cielo
+            Vector3 spawnPos = new Vector3(0, 5, 0);
             Quaternion spawnRot = Quaternion.identity;
 
-            // 2. Elige uno al azar evitando spawnear encima de otros jugadores, si es posible
-            PickSpawnPointAvoidingPlayers(spawnPoints, m_CharacterController, out spawnPos, out spawnRot);
+            PickSpawnTransform(spawnPoints, m_CharacterController, out spawnPos, out spawnRot);
 
-            // --- MUY IMPORTANTE ---
-            // Este RPC solo responde al cliente que lo pidió, así que si NO revivimos también en el servidor,
-            // el Health del servidor se queda "muerto" y deja de disparar OnDie en muertes posteriores.
-            // (Eso rompe el contador de kills/muertes en partidas host+clientes).
-            SnapSpawnPositionToGround(ref spawnPos);
             transform.position = spawnPos;
             transform.rotation = spawnRot;
             m_LastPlayerAttacker = null;
@@ -203,67 +178,32 @@ namespace Unity.FPS.Gameplay
 
             Physics.SyncTransforms();
 
-            // 3. Informamos a TODOS los clientes para que el respawn sea visible también en remotos.
             RespawnClientRpc(spawnPos, spawnRot);
         }
 
         [ClientRpc]
         void RespawnClientRpc(Vector3 spawnPosition, Quaternion spawnRotation, ClientRpcParams clientRpcParams = default)
         {
-            // --- EL CLIENTE RENACE ---
-
-            // 1. Apagamos el motor físico temporalmente para poder teletransportarnos
             CharacterController cc = GetComponent<CharacterController>();
             if (cc != null) cc.enabled = false;
 
-            // 2. Nos movemos a la coordenada que nos dijo el servidor
-            var pos = spawnPosition;
-            SnapSpawnPositionToGround(ref pos);
-            transform.position = pos;
+            transform.position = spawnPosition;
             transform.rotation = spawnRotation;
 
             Physics.SyncTransforms();
 
-            // 3. Volvemos a encender el motor físico
             if (cc != null) cc.enabled = true;
 
-            // 4. Curamos la vida y reactivamos los controles
             if (m_Health != null) m_Health.Revive();
             if (m_CharacterController != null) m_CharacterController.OnRespawn();
         }
 
-        void TryMoveToRandomSpawnPointAvoidingPlayers()
-        {
-            GameObject[] spawnPoints = GameObject.FindGameObjectsWithTag("RespawnPoint");
-            PickSpawnPointAvoidingPlayers(spawnPoints, m_CharacterController, out var spawnPos, out var spawnRot);
-
-            transform.position = spawnPos;
-            transform.rotation = spawnRot;
-        }
-
         /// <summary>
-        /// Alinea la altura Y del spawn con el suelo bajo el marcador. Evita que el CharacterController,
-        /// al reactivarse, use overlap recovery y empuje el cuerpo hacia arriba (sensación de estar pegado al "techo").
+        /// 1) Barajar los RespawnPoint; usar el primero cuyo suelo (XZ) esté libre de otros jugadores.
+        /// 2) Si todos parecen ocupados: proyectar cada marcador sobre NavMesh y tomar el primero válido.
+        /// 3) Si aun así no hay malla: usar posición/rotación del marcador tal cual (fallback).
         /// </summary>
-        void SnapSpawnPositionToGround(ref Vector3 worldPos)
-        {
-            var cc = GetComponent<CharacterController>();
-            float footHeight = cc != null ? Mathf.Max(cc.skinWidth, m_GroundSnapYOffset) : m_GroundSnapYOffset;
-
-            // Origen ligeramente por encima del marcador para no impactar en el suelo desde dentro del suelo.
-            Vector3 origin = worldPos + Vector3.up * 0.35f;
-            if (Physics.Raycast(origin, Vector3.down, out var hit, m_GroundSnapMaxDistance, m_SpawnGroundLayers,
-                    QueryTriggerInteraction.Ignore))
-            {
-                worldPos = new Vector3(worldPos.x, hit.point.y + footHeight, worldPos.z);
-            }
-        }
-
-        /// <param name="excludeSelf">
-        /// No tratar nuestra posición actual como "otro jugador" al comprobar solapes (evita que el host,
-        /// aún en la posición por defecto del NetworkManager, bloquee todos los puntos cercanos al centro).
-        /// </param>
-        static void PickSpawnPointAvoidingPlayers(GameObject[] spawnPoints, PlayerCharacterController excludeSelf,
+        void PickSpawnTransform(GameObject[] spawnPoints, PlayerCharacterController excludeSelf,
             out Vector3 spawnPos, out Quaternion spawnRot)
         {
             spawnPos = new Vector3(0, 5, 0);
@@ -273,11 +213,9 @@ namespace Unity.FPS.Gameplay
                 return;
 
             var players = Object.FindObjectsByType<PlayerCharacterController>(FindObjectsSortMode.None);
-            const float minDistance = 6.0f;
+            float minSep = Mathf.Max(0.5f, m_MinHorizontalSeparationFromPlayers);
 
-            // Orden aleatorio: si solo hay un jugador, antes el algoritmo determinista acababa siempre
-            // eligiendo el mismo RespawnPoint (el "mejor" según recorrido del array).
-            var indices = new List<int>(spawnPoints.Length);
+            var indices = new List<int>();
             for (int i = 0; i < spawnPoints.Length; i++)
             {
                 if (spawnPoints[i] != null)
@@ -293,38 +231,40 @@ namespace Unity.FPS.Gameplay
                 (indices[i], indices[j]) = (indices[j], indices[i]);
             }
 
-            // 1) Entre los no bloqueados (≥ minDistance a otros), elegir uno al azar.
-            var candidatesOk = new List<int>();
+            // --- Paso 1: marcadores libres (solo distancia horizontal entre jugadores) ---
             for (int k = 0; k < indices.Count; k++)
             {
-                int s = indices[k];
-                var sp = spawnPoints[s];
+                var sp = spawnPoints[indices[k]];
                 Vector3 candidate = sp.transform.position;
-                if (IsSpawnBlockedByPlayers(candidate, players, excludeSelf, minDistance))
+                if (IsXZTooCloseToOtherPlayers(candidate, players, excludeSelf, minSep))
                     continue;
-                candidatesOk.Add(s);
-            }
 
-            if (candidatesOk.Count > 0)
-            {
-                int pick = candidatesOk[Random.Range(0, candidatesOk.Count)];
-                var chosen = spawnPoints[pick];
-                spawnPos = chosen.transform.position;
-                spawnRot = chosen.transform.rotation;
+                spawnPos = sp.transform.position;
+                spawnRot = sp.transform.rotation;
                 return;
             }
 
-            // 2) Si todos están "bloqueados", cualquier punto sirve: elige al azar entre todos.
-            int fallback = indices[Random.Range(0, indices.Count)];
+            // --- Paso 2: todos ocupados → punto en NavMesh cerca de un marcador (barajado) ---
+            for (int k = 0; k < indices.Count; k++)
             {
-                var sp = spawnPoints[fallback];
-                spawnPos = sp.transform.position;
-                spawnRot = sp.transform.rotation;
+                var sp = spawnPoints[indices[k]];
+                Vector3 p = sp.transform.position;
+                if (NavMesh.SamplePosition(p, out var hit, m_NavMeshSampleRadius, NavMesh.AllAreas))
+                {
+                    spawnPos = hit.position;
+                    spawnRot = sp.transform.rotation;
+                    return;
+                }
             }
+
+            // --- Paso 3: último recurso, primer marcador barajado ---
+            var fallback = spawnPoints[indices[0]];
+            spawnPos = fallback.transform.position;
+            spawnRot = fallback.transform.rotation;
         }
 
-        static bool IsSpawnBlockedByPlayers(Vector3 candidateWorld, PlayerCharacterController[] players,
-            PlayerCharacterController excludeSelf, float minDistance)
+        static bool IsXZTooCloseToOtherPlayers(Vector3 candidateWorld, PlayerCharacterController[] players,
+            PlayerCharacterController excludeSelf, float minHorizontal)
         {
             for (int i = 0; i < players.Length; i++)
             {
@@ -333,7 +273,10 @@ namespace Unity.FPS.Gameplay
                 if (excludeSelf != null && p == excludeSelf)
                     continue;
 
-                if (Vector3.Distance(p.transform.position, candidateWorld) < minDistance)
+                Vector3 o = p.transform.position;
+                float dx = candidateWorld.x - o.x;
+                float dz = candidateWorld.z - o.z;
+                if (dx * dx + dz * dz < minHorizontal * minHorizontal)
                     return true;
             }
 

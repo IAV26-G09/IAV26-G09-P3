@@ -146,12 +146,15 @@ public class MatchDataManager : MonoBehaviour
         string timeStamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
         string filePath = Path.Combine(Application.dataPath, $"ResultadosPartida_{timeStamp}.json");
 
-        File.WriteAllText(filePath, json);
-        Debug.Log($"<color=green>¡Partida guardada! JSON creado en: {filePath}</color>");
+        // Desactivado: generaba archivos ResultadosPartida_*.json en Assets/ al cerrar la partida (datos de votación / análisis).
+        // Reactiva estas líneas cuando quieras volver a exportar a disco.
+        // File.WriteAllText(filePath, json);
+        // Debug.Log($"<color=green>¡Partida guardada! JSON creado en: {filePath}</color>");
     }
 
     public void OnDestroy()
     {
-        ExportarDatosAJson();
+        // Exportación JSON al salir (misma función que arriba). Comentado junto con File.WriteAllText.
+        // ExportarDatosAJson();
     }
 }

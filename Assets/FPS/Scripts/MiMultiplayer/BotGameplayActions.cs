@@ -44,6 +44,9 @@ public class BotGameplayActions : MonoBehaviour
     Health m_Health;
     PlayerCharacterController m_PlayerCc;
 
+    Vector3 m_LastWorldPosForAnim;
+    bool m_HasLastWorldPosForAnim;
+
     /// <summary>Referencia al agente de navegación del bot (puede ser null antes de inicializar).</summary>
     public NavMeshAgent NavMeshAgent => m_NavMeshAgent;
 
@@ -56,6 +59,11 @@ public class BotGameplayActions : MonoBehaviour
         m_PlayerCc = GetComponent<PlayerCharacterController>();
         m_Weapons = GetComponent<PlayerWeaponsManager>();
         m_NavMeshAgent = GetComponent<NavMeshAgent>();
+    }
+
+    void OnEnable()
+    {
+        m_HasLastWorldPosForAnim = false;
     }
 
     /// <summary>
@@ -105,11 +113,63 @@ public class BotGameplayActions : MonoBehaviour
         m_NavMeshAgent.updatePosition = true;
         m_NavMeshAgent.updateRotation = true;
 
+        // Radio pequeño: si el jugador ya está bien posicionado en un sótano, un radio grande podía
+        // proyectar a otra capa de NavMesh más alta (otra planta) y provocar desplazamientos raros.
         if (!m_NavMeshAgent.isOnNavMesh &&
-            NavMesh.SamplePosition(transform.position, out var hit, 25f, NavMesh.AllAreas))
+            NavMesh.SamplePosition(transform.position, out var hit, 2.5f, NavMesh.AllAreas))
         {
             m_NavMeshAgent.Warp(hit.position);
         }
+    }
+
+    void LateUpdate()
+    {
+        // UCM_Bot desactiva PlayerCharacterController; el Animator no recibe Forward/Strafe. Replicamos
+        // la idea del PCC usando la velocidad real del transform (válida en servidor y clientes vía red).
+        if (GetComponent<FSM>() == null)
+            return;
+
+        DriveThirdPersonLocomotionAnimator();
+    }
+
+    void DriveThirdPersonLocomotionAnimator()
+    {
+        if (m_PlayerCc == null)
+            return;
+
+        var anim = m_PlayerCc.CharacterAnimator;
+        if (anim == null)
+            return;
+
+        if (m_Health != null && m_Health.CurrentHealth <= 0f)
+            return;
+
+        if (anim.GetBool("IsDead"))
+            return;
+
+        float dt = Time.deltaTime;
+        if (dt < 1e-5f)
+            return;
+
+        if (!m_HasLastWorldPosForAnim)
+        {
+            m_LastWorldPosForAnim = transform.position;
+            m_HasLastWorldPosForAnim = true;
+            return;
+        }
+
+        Vector3 worldVel = (transform.position - m_LastWorldPosForAnim) / dt;
+        m_LastWorldPosForAnim = transform.position;
+
+        Vector3 localVel = transform.InverseTransformDirection(worldVel);
+        float maxSpd = Mathf.Max(0.01f, m_PlayerCc.MaxSpeedOnGround);
+        float forward = Mathf.Clamp(localVel.z / maxSpd, -1f, 1f);
+        float strafe = Mathf.Clamp(localVel.x / maxSpd, -1f, 1f);
+
+        anim.SetFloat("Forward", forward, 0.12f, dt);
+        anim.SetFloat("Strafe", strafe, 0.12f, dt);
+        anim.SetBool("IsGrounded", true);
+        anim.SetBool("IsAiming", m_Weapons != null && m_Weapons.IsAiming);
     }
 
     /// <summary>Ordena moverse hacia un punto del mundo (debe ser alcanzable por NavMesh).</summary>
