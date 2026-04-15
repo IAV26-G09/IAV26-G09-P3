@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > Versión: 1
-s
+
 ## Índice
 1. [Autores](#autores)
 2. [Resumen](#resumen)
