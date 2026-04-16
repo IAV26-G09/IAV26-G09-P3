@@ -6,7 +6,7 @@ using Unity.FPS.Gameplay;
 using Unity.FPS.Game;
 
 // =================================================================================================
-// FSM — Plantilla de máquina de estados SIMPLIFICADA Y A FUEGO EN EL CÓDIGO para UCM_Bot  
+// FSM — Plantilla de máquina de estados SIMPLIFICADA Y A FUEGO EN EL CÓDIGO para UCM_Bot
 // =================================================================================================
 // Objetivo:
 //   • Separar "qué decide la IA" (esta clase) de "cómo se ejecutan las acciones en el juego"
@@ -51,7 +51,7 @@ public class FSM : NetworkBehaviour
     [Header("FSM — depuración")]
     [SerializeField] bool m_LogStateTransitions;
 
-    BotState m_State = BotState.Idle;
+    BotState m_State = BotState.Idle; // current state
     BotState m_PreviousStateForLog;
 
     float m_NextRepathTime;
@@ -206,6 +206,7 @@ public class FSM : NetworkBehaviour
             return;
 
         // Máquina de estados por frame (servidor).
+        // Comprueba y aplica transiciones
         switch (m_State)
         {
             case BotState.Idle:
