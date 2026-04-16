@@ -230,6 +230,11 @@ namespace Unity.FPS.Gameplay
                 SetCrouchingState(!IsCrouching, false);
             }
 
+            if (m_InputHandler.GetChangeViewButtonRelease())
+            {
+                ChangeCameraView();
+            }
+
             UpdateCharacterHeight(false);
 
             HandleCharacterMovement();
@@ -534,6 +539,11 @@ namespace Unity.FPS.Gameplay
 
             IsCrouching = crouched;
             return true;
+        }
+
+        void ChangeCameraView()
+        {
+
         }
     }
 }

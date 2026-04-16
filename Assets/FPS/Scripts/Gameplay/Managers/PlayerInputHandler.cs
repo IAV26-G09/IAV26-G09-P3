@@ -73,6 +73,7 @@ namespace Unity.FPS.Gameplay
 
         private InputAction m_NextWeaponAction;
 
+        private InputAction m_changeViewAction;
 
 
         void Start()
@@ -126,6 +127,8 @@ namespace Unity.FPS.Gameplay
 
             m_NextWeaponAction = InputSystem.actions.FindAction("Player/NextWeapon");
 
+            m_changeViewAction = InputSystem.actions.FindAction("Player/ChangeView");
+            
             
             // Las acciones pueden no existir según el mapa de InputActions cargado (MPPM, escenas parciales, etc.).
             // Habilitamos solo las que existan para evitar NullReference.
@@ -138,6 +141,7 @@ namespace Unity.FPS.Gameplay
             m_CrouchAction?.Enable();
             m_ReloadAction?.Enable();
             m_NextWeaponAction?.Enable();
+            m_changeViewAction?.Enable();
 
         }
 
@@ -635,6 +639,15 @@ namespace Unity.FPS.Gameplay
 
             return 0;
 
+        }
+
+        public bool GetChangeViewButtonRelease()
+        {
+            if (CanProcessInput())
+            {
+                return m_changeViewAction != null && m_changeViewAction.WasReleasedThisFrame();
+            }
+            return false;
         }
 
         static bool IsNetcodeOwnerPresentAndNotOwner(GameObject go)
