@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class HSMBase
 {
+    private int level; // nivel de la jerarquia
+
     /// <summary>
     /// Cuando la state machine entre a este estado
     /// </summary>
