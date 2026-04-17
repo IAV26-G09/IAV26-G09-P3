@@ -25,17 +25,17 @@ using Unity.FPS.Game;
 /// <summary>
 /// Estados de alto nivel del bot (ej. Patrol, Chase, Flee…).
 /// </summary>
-public enum BotState
-{
-    /// <summary>Inactivo hasta que la red y el NavMesh estén listos.</summary>
-    Idle,
+//public enum BotState
+//{
+//    /// <summary>Inactivo hasta que la red y el NavMesh estén listos.</summary>
+//    Idle,
 
-    /// <summary>Comportamiento de ejemplo: deambular por el mapa eligiendo puntos aleatorios.</summary>
-    Wandering,
+//    /// <summary>Comportamiento de ejemplo: deambular por el mapa eligiendo puntos aleatorios.</summary>
+//    Wandering,
 
-    /// <summary>Podéis usar este estado cuando CurrentHealth &lt;= 0 o cuando queráis bloquear la IA por otra razón.</summary>
-    Dead
-}
+//    /// <summary>Podéis usar este estado cuando CurrentHealth &lt;= 0 o cuando queráis bloquear la IA por otra razón.</summary>
+//    Dead
+//}
 
 [RequireComponent(typeof(BotGameplayActions))]
 [DisallowMultipleComponent]
@@ -51,13 +51,23 @@ public class FSM : NetworkBehaviour
     [Header("FSM — depuración")]
     [SerializeField] bool m_LogStateTransitions;
 
-    BotState m_State = BotState.Idle; // current state
-    BotState m_PreviousStateForLog;
+    //BotState m_State = BotState.Idle; // current state
+    //BotState m_PreviousStateForLog;
 
     float m_NextRepathTime;
 
     Health m_Health;
     BotGameplayActions m_Actions;
+
+    ///  
+    HSM m_HSM = new HSM();
+
+    HSMBase m_Idle;
+    HSMBase m_Combat;
+
+    public BotGameplayActions Actions => m_Actions;
+    public HSMBase GetCombatState() => m_Combat;
+    public HSMBase GetIdleState() => m_Idle;
 
     // ---------------------------------------------------------------------------------------------
     // Ciclo de vida red / componentes
@@ -80,8 +90,8 @@ public class FSM : NetworkBehaviour
 
         if (m_Health != null)
         {
-            m_Health.OnDie += OnBotDied;
-            m_Health.OnHealed += OnBotHealed;
+            //m_Health.OnDie += OnBotDied;
+            //m_Health.OnHealed += OnBotHealed;
         }
 
         // Cámaras y listeners solo en el owner (en bots suele ser irrelevante, pero evita conflictos de tipo MPPM).
@@ -98,8 +108,8 @@ public class FSM : NetworkBehaviour
 
         if (m_Health != null)
         {
-            m_Health.OnDie -= OnBotDied;
-            m_Health.OnHealed -= OnBotHealed;
+            //m_Health.OnDie -= OnBotDied;
+            //m_Health.OnHealed -= OnBotHealed;
         }
 
         base.OnNetworkDespawn();
@@ -130,7 +140,9 @@ public class FSM : NetworkBehaviour
 
         DisableHumanLocomotionThatConflictsWithNavMesh();
 
-        TransitionTo(BotState.Wandering);
+        //TransitionTo(BotState.Wandering);
+
+        InitializeStates();
     }
 
     void DisableHumanInputAndWeaponStack()
@@ -182,19 +194,19 @@ public class FSM : NetworkBehaviour
     // Eventos de salud
     // ---------------------------------------------------------------------------------------------
 
-    void OnBotDied()
-    {
-        TransitionTo(BotState.Dead);
-        m_Actions.DisableNavMeshAgent();
-    }
+    //void OnBotDied()
+    //{
+    //    TransitionTo(BotState.Dead);
+    //    m_Actions.DisableNavMeshAgent();
+    //}
 
-    void OnBotHealed(float _)
-    {
-        // Tras respawn, el servidor puede volver a mover al bot.
-        m_Actions.EnableNavMeshAgent();
-        m_NextRepathTime = 0f;
-        TransitionTo(BotState.Wandering);
-    }
+    //void OnBotHealed(float _)
+    //{
+    //    // Tras respawn, el servidor puede volver a mover al bot.
+    //    m_Actions.EnableNavMeshAgent();
+    //    m_NextRepathTime = 0f;
+    //    TransitionTo(BotState.Wandering);
+    //}
 
     // ---------------------------------------------------------------------------------------------
     // Máquina de estados — Esto viene a ser núcleo de la IA, lo que tendréis que cambiar.
@@ -207,22 +219,24 @@ public class FSM : NetworkBehaviour
 
         // Máquina de estados por frame (servidor).
         // Comprueba y aplica transiciones
-        switch (m_State)
-        {
-            case BotState.Idle:
-                // Nada: estado transitorio si no habéis llamado aún a EnterInitialStateOnServer.
-                break;
+        //switch (m_State)
+        //{
+        //    case BotState.Idle:
+        //        // Nada: estado transitorio si no habéis llamado aún a EnterInitialStateOnServer.
+        //        break;
 
-            case BotState.Wandering:
-                TickWanderingExample();
-                break;
+        //    case BotState.Wandering:
+        //        TickWanderingExample();
+        //        break;
 
-            case BotState.Dead:
-                // No mover ni decidir: PlayerRespawner gestionará el revive en servidor.
-                break;
+        //    case BotState.Dead:
+        //        // No mover ni decidir: PlayerRespawner gestionará el revive en servidor.
+        //        break;
 
-                // Aquí se podrían añadir otros estados como BotState.Chase: TickChase(); break;
-        }
+        //        // Aquí se podrían añadir otros estados como BotState.Chase: TickChase(); break;
+        //}
+
+        m_HSM.Update();
     }
 
     /// <summary>
@@ -253,43 +267,43 @@ public class FSM : NetworkBehaviour
     /// <summary>
     /// Punto centralizado para transiciones. Usadlo para logging y tareas de entrada/salida de estado.
     /// </summary>
-    void TransitionTo(BotState newState)
-    {
-        if (m_State == newState)
-            return;
+    //void TransitionTo(BotState newState)
+    //{
+    //    if (m_State == newState)
+    //        return;
 
-        OnExitState(m_State);
-        m_PreviousStateForLog = m_State;
-        m_State = newState;
-        OnEnterState(newState);
+    //    OnExitState(m_State);
+    //    m_PreviousStateForLog = m_State;
+    //    m_State = newState;
+    //    OnEnterState(newState);
 
-        if (m_LogStateTransitions)
-            Debug.Log($"[FSM] {name}: {m_PreviousStateForLog} -> {newState}", this);
-    }
+    //    if (m_LogStateTransitions)
+    //        Debug.Log($"[FSM] {name}: {m_PreviousStateForLog} -> {newState}", this);
+    //}
 
-    void OnExitState(BotState state)
-    {
-        switch (state)
-        {
-            case BotState.Wandering:
-                // Ej.: dejar de disparar, cancelar tweens…
-                break;
-        }
-    }
+    //void OnExitState(BotState state)
+    //{
+    //    switch (state)
+    //    {
+    //        case BotState.Wandering:
+    //            // Ej.: dejar de disparar, cancelar tweens…
+    //            break;
+    //    }
+    //}
 
-    void OnEnterState(BotState state)
-    {
-        switch (state)
-        {
-            case BotState.Wandering:
-                m_NextRepathTime = 0f;
-                break;
+    //void OnEnterState(BotState state)
+    //{
+    //    switch (state)
+    //    {
+    //        case BotState.Wandering:
+    //            m_NextRepathTime = 0f;
+    //            break;
 
-            case BotState.Dead:
-                m_Actions.StopNavigation();
-                break;
-        }
-    }
+    //        case BotState.Dead:
+    //            m_Actions.StopNavigation();
+    //            break;
+    //    }
+    //}
 
     // ---------------------------------------------------------------------------------------------
     // Utilidades NavMesh (podrían moverse a BotGameplayActions si preferís no tener nada de lógica aquí)
@@ -311,4 +325,16 @@ public class FSM : NetworkBehaviour
         result = origin;
         return false;
     }
+
+    void InitializeStates()
+    {
+        //m_Idle = new IdleState(); escriptable ojbet
+        //m_Combat = new CombatState(); escriptable ojbet
+
+        m_Idle.Init(this);
+        m_Combat.Init(this);
+
+        m_HSM.SetState(m_Idle);
+    }
 }
+

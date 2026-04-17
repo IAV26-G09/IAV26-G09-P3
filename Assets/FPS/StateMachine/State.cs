@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class State
+public class State : HSMBase
 {
     
 }

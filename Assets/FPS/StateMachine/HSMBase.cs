@@ -1,8 +1,16 @@
 using UnityEngine;
 
-public class HSMBase
+public class HSMBase 
 {
+    protected FSM fsm;
     private int level; // nivel de la jerarquia
+
+    public void Init(FSM fsm)
+    {
+        this.fsm = fsm;
+    }
+
+    public virtual HSMBase CheckTransitions() { return null; }
 
     /// <summary>
     /// Cuando la state machine entre a este estado
