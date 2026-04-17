@@ -62,12 +62,12 @@ public class FSM : NetworkBehaviour
     ///  
     HSM m_HSM = new HSM();
 
-    HSMBase m_Idle;
-    HSMBase m_Combat;
+    HSMBase m_Dead;
+    HSMBase m_Alive;
 
     public BotGameplayActions Actions => m_Actions;
-    public HSMBase GetCombatState() => m_Combat;
-    public HSMBase GetIdleState() => m_Idle;
+    public HSMBase GetDeadState() => m_Dead;
+    public HSMBase GetAliveState() => m_Alive;
 
     // ---------------------------------------------------------------------------------------------
     // Ciclo de vida red / componentes
@@ -331,10 +331,10 @@ public class FSM : NetworkBehaviour
         //m_Idle = new IdleState(); escriptable ojbet
         //m_Combat = new CombatState(); escriptable ojbet
 
-        m_Idle.Init(this);
-        m_Combat.Init(this);
+        m_Alive.Init(this);
+        m_Dead.Init(this);
 
-        m_HSM.SetState(m_Idle);
+        m_HSM.SetState(m_Alive);
     }
 }
 
