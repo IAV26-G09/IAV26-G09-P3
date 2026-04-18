@@ -1,3 +1,4 @@
+using HierarchicalStateMachine;
 using UnityEngine;
 
 public class HSMBase 

@@ -1,9 +1,98 @@
 using System.Collections;
+using System.Linq;
+using Unity.FPS.Game;
+using Unity.FPS.Gameplay;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
-using Unity.FPS.Gameplay;
-using Unity.FPS.Game;
+using UnityEngine.LowLevel;
+
+
+namespace HierarchicalStateMachine
+{
+    // estados hardcodeados para probar ----
+    public class Idle : State
+    {
+        public Idle(StateMachine m, State parent) : base(m, parent)
+        {
+        }
+
+        protected override void OnEnter()
+        {
+            Debug.Log("ENTRANDO A IDLE");
+        }
+    }
+
+    public class Emergencia : State
+    {
+        private bool paseo = true;
+
+        public Emergencia(StateMachine m, State parent) : base(m, parent)
+        {
+        }
+
+        protected override State GetTransition()
+        {
+            if (paseo)
+            {
+                Debug.Log("voy a paseo");
+                paseo = false;
+                return ((BotRoot)Parent).Paseo;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        protected override void OnEnter()
+        {
+            Debug.Log("ENTRANDO A EMERGENCIA");
+        }
+    }
+
+    public class Paseo : State
+    {
+        public readonly Idle Idle;
+
+        public Paseo(StateMachine m, State parent) : base(m, parent)
+        {
+            Idle = new Idle(m, this);
+        }
+
+        protected override State GetInitialState() => Idle;
+    }
+
+    public class BotRoot : State
+    {
+        public readonly Paseo Paseo;
+        public readonly Emergencia Emergencia;
+
+        private bool emer = true;
+
+        public BotRoot(StateMachine m) 
+            : base(m, null)
+        {
+            Paseo = new Paseo(m, this);
+            Emergencia = new Emergencia(m, this);
+        }
+
+        protected override State GetInitialState() => Paseo;
+
+        protected override State GetTransition()
+        {
+            if (emer)
+            {
+                Debug.Log("voy a emergencia");
+                emer = false;
+                return Emergencia;
+            }
+            else
+            {
+                return null;
+            }
+        }
+    }
 
 // =================================================================================================
 // FSM — Plantilla de máquina de estados SIMPLIFICADA Y A FUEGO EN EL CÓDIGO para UCM_Bot
@@ -59,7 +148,12 @@ public class FSM : NetworkBehaviour
     Health m_Health;
     BotGameplayActions m_Actions;
 
-    ///  
+    // 
+    private State root;
+    private StateMachine machine;
+    private string lastPath;
+
+    // 
     HSM m_HSM = new HSM();
 
     HSMBase m_Dead;
@@ -217,26 +311,39 @@ public class FSM : NetworkBehaviour
         if (!IsServer)
             return;
 
-        // Máquina de estados por frame (servidor).
-        // Comprueba y aplica transiciones
-        //switch (m_State)
-        //{
-        //    case BotState.Idle:
-        //        // Nada: estado transitorio si no habéis llamado aún a EnterInitialStateOnServer.
-        //        break;
+        if (machine != null)
+        {
+            machine.Tick(Time.deltaTime);
 
-        //    case BotState.Wandering:
-        //        TickWanderingExample();
-        //        break;
+            var path = StatePath(machine.Root.Leaf());
 
-        //    case BotState.Dead:
-        //        // No mover ni decidir: PlayerRespawner gestionará el revive en servidor.
-        //        break;
+            if (path != lastPath)
+            {
+                Debug.Log(path);
+                lastPath = path;
+            }
+        }
 
-        //        // Aquí se podrían añadir otros estados como BotState.Chase: TickChase(); break;
-        //}
+            // Máquina de estados por frame (servidor).
+            // Comprueba y aplica transiciones
+            //switch (m_State)
+            //{
+            //    case BotState.Idle:
+            //        // Nada: estado transitorio si no habéis llamado aún a EnterInitialStateOnServer.
+            //        break;
 
-        m_HSM.Update();
+            //    case BotState.Wandering:
+            //        TickWanderingExample();
+            //        break;
+
+            //    case BotState.Dead:
+            //        // No mover ni decidir: PlayerRespawner gestionará el revive en servidor.
+            //        break;
+
+            //        // Aquí se podrían añadir otros estados como BotState.Chase: TickChase(); break;
+            //}
+
+            m_HSM.Update();
     }
 
     /// <summary>
@@ -331,10 +438,20 @@ public class FSM : NetworkBehaviour
         //m_Idle = new IdleState(); escriptable ojbet
         //m_Combat = new CombatState(); escriptable ojbet
 
-        m_Alive.Init(this);
-        m_Dead.Init(this);
+        //m_Alive.Init(this);
+        //m_Dead.Init(this);
 
-        m_HSM.SetState(m_Alive);
+        //m_HSM.SetState(m_Alive);
+
+        root = new BotRoot(null);
+        var builder = new StateMachineBuilder(root);
+        machine = builder.Build();
     }
-}
 
+    static string StatePath(State s)
+    {
+        return string.Join(" > ", s.PathToRoot().AsEnumerable().Reverse().Select(n => n.GetType().Name));
+    }
+    }
+
+}
