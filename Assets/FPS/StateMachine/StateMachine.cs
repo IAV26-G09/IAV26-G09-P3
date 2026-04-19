@@ -8,6 +8,7 @@ namespace HierarchicalStateMachine
     {
         public readonly State Root; // referencia al estado raiz del arbol (H* en el diagrama de Millington)
         public readonly TransitionManager Transitions;
+        public FSM Owner;
 
         private bool started;
 
@@ -64,7 +65,7 @@ namespace HierarchicalStateMachine
 
         public StateMachine Build()
         {
-            Debug.Log("Building");
+            //Debug.Log("Building");
 
             var m = new StateMachine(root);
             Wire(root, m, new HashSet<State>());

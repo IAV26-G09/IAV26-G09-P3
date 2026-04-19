@@ -38,6 +38,8 @@ namespace HierarchicalStateMachine
         protected virtual void OnExit() {}
         protected virtual void OnUpdate(float deltaTime) {}
 
+        protected BotGameplayActions Actions => Machine.Owner.Actions;
+
         // metodos internos
         internal void Enter()
         {
@@ -64,14 +66,14 @@ namespace HierarchicalStateMachine
 
             if (to != null)
             {
-                Debug.Log("tengo que transicionar");
+                //Debug.Log("Tengo que transicionar");
                 Machine.Transitions.RequestTransition(this, to); // triggerea la transicion
             }
 
             // si no hemos transicionado y tenemos un hijo recurre en el update
             else if (ActiveChild != null)
             {
-                Debug.Log("NO tengo que transicionar");
+                //Debug.Log("NO tengo que transicionar");
 
                 ActiveChild.Update(deltaTime);
             }

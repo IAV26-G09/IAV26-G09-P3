@@ -7,6 +7,16 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.LowLevel;
 
+/*
+ * Se trata como un arbol:
+ * 
+ *             STATEMACHINE
+ *             /          \
+ *         paseo         combat
+ *         /   \           ...
+ *     idle   moving   
+ *
+ */
 
 namespace HierarchicalStateMachine
 {
@@ -21,13 +31,18 @@ namespace HierarchicalStateMachine
         {
             Debug.Log("ENTRANDO A IDLE");
         }
+
+        protected override void OnUpdate(float deltaTime)
+        {
+            base.OnUpdate(deltaTime);
+        }
     }
 
-    public class Emergencia : State
+    public class Combat : State
     {
         private bool paseo = true;
 
-        public Emergencia(StateMachine m, State parent) : base(m, parent)
+        public Combat(StateMachine m, State parent) : base(m, parent)
         {
         }
 
@@ -66,26 +81,26 @@ namespace HierarchicalStateMachine
     public class BotRoot : State
     {
         public readonly Paseo Paseo;
-        public readonly Emergencia Emergencia;
+        public readonly Combat Combat;
 
-        private bool emer = true;
+        private bool combat = true;
 
         public BotRoot(StateMachine m) 
             : base(m, null)
         {
             Paseo = new Paseo(m, this);
-            Emergencia = new Emergencia(m, this);
+            Combat = new Combat(m, this);
         }
 
         protected override State GetInitialState() => Paseo;
 
         protected override State GetTransition()
         {
-            if (emer)
+            if (combat)
             {
-                Debug.Log("voy a emergencia");
-                emer = false;
-                return Emergencia;
+                Debug.Log("voy a combate");
+                combat = false;
+                return Combat;
             }
             else
             {
@@ -153,15 +168,7 @@ public class FSM : NetworkBehaviour
     private StateMachine machine;
     private string lastPath;
 
-    // 
-    HSM m_HSM = new HSM();
-
-    HSMBase m_Dead;
-    HSMBase m_Alive;
-
     public BotGameplayActions Actions => m_Actions;
-    public HSMBase GetDeadState() => m_Dead;
-    public HSMBase GetAliveState() => m_Alive;
 
     // ---------------------------------------------------------------------------------------------
     // Ciclo de vida red / componentes
@@ -343,7 +350,6 @@ public class FSM : NetworkBehaviour
             //        // Aquí se podrían añadir otros estados como BotState.Chase: TickChase(); break;
             //}
 
-            m_HSM.Update();
     }
 
     /// <summary>
@@ -435,17 +441,10 @@ public class FSM : NetworkBehaviour
 
     void InitializeStates()
     {
-        //m_Idle = new IdleState(); escriptable ojbet
-        //m_Combat = new CombatState(); escriptable ojbet
-
-        //m_Alive.Init(this);
-        //m_Dead.Init(this);
-
-        //m_HSM.SetState(m_Alive);
-
         root = new BotRoot(null);
         var builder = new StateMachineBuilder(root);
         machine = builder.Build();
+        machine.Owner = this;
     }
 
     static string StatePath(State s)
