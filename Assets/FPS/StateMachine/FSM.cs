@@ -35,6 +35,48 @@ namespace HierarchicalStateMachine
         protected override void OnUpdate(float deltaTime)
         {
             base.OnUpdate(deltaTime);
+            WanderingTick();
+        }
+
+        void WanderingTick()
+        {
+            //if (m_Health != null && m_Health.CurrentHealth <= 0f)
+            //    return;
+
+            //var agent = m_Actions.NavMeshAgent;
+            //if (agent == null || !agent.enabled || !agent.isOnNavMesh)
+            //    return;
+
+            //if (Time.time < m_NextRepathTime)
+            //    return;
+
+            //m_NextRepathTime = Time.time + Mathf.Max(0.1f, m_RepathIntervalSeconds);
+
+            //bool needsNewTarget = !agent.hasPath || agent.pathPending || m_Actions.HasReachedCurrentDestination();
+            //if (!needsNewTarget)
+            //    return;
+
+            var actions = Actions;
+
+            var agent = actions.NavMeshAgent;
+            if (agent == null || !agent.enabled || !agent.isOnNavMesh)
+            {
+                Debug.Log("NO TENGO NAVMESH!!!!!!!!!!!!!!!");
+                return;
+            }
+
+            if (!agent.hasPath || actions.HasReachedCurrentDestination())
+            {
+                //if (TryPickRandomNavMeshPoint(transform.position, Mathf.Max(2f, m_WanderRadius), out var dest))
+                if (FSM.TryPickRandomNavMeshPoint(actions.transform.position, 20f, out var dest))
+                {
+                    actions.TryMoveToWorldPosition(dest);
+                }
+            }
+            else
+            {
+
+            }
         }
     }
 
@@ -422,7 +464,7 @@ public class FSM : NetworkBehaviour
     // Utilidades NavMesh (podrían moverse a BotGameplayActions si preferís no tener nada de lógica aquí)
     // ---------------------------------------------------------------------------------------------
 
-    static bool TryPickRandomNavMeshPoint(Vector3 origin, float radius, out Vector3 result)
+    static public bool TryPickRandomNavMeshPoint(Vector3 origin, float radius, out Vector3 result)
     {
         for (int i = 0; i < 20; i++)
         {
