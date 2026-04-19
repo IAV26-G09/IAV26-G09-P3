@@ -21,8 +21,14 @@ using UnityEngine.LowLevel;
 namespace HierarchicalStateMachine
 {
     // estados hardcodeados para probar ----
+
+
     public class Idle : State
     {
+        float counter = 0.0f;
+        float time = 5.0f;
+        bool toPatrol = false;
+
         public Idle(StateMachine m, State parent) : base(m, parent)
         {
         }
@@ -32,32 +38,67 @@ namespace HierarchicalStateMachine
             Debug.Log("ENTRANDO A IDLE");
         }
 
+        protected override State GetTransition()
+        {
+            if (toPatrol)
+            {
+                Debug.Log("voy a patrol");
+                toPatrol = false;
+                return ((Paseo)Parent).Patrol;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         protected override void OnUpdate(float deltaTime)
         {
             base.OnUpdate(deltaTime);
-            WanderingTick();
+            
+            counter += deltaTime;
+            Debug.Log(counter);
+            if (counter >= time)
+            {
+                toPatrol = true;
+                counter = 0;
+                return;
+            }
+        }
+    }
+
+    public class Patrol : State
+    {
+        bool toIdle = false;
+
+        public Patrol(StateMachine m, State parent) : base(m, parent)
+        {
         }
 
-        void WanderingTick()
+        protected override void OnEnter()
         {
-            //if (m_Health != null && m_Health.CurrentHealth <= 0f)
-            //    return;
+            Debug.Log("ENTRANDO A IDLE");
+        }
 
-            //var agent = m_Actions.NavMeshAgent;
-            //if (agent == null || !agent.enabled || !agent.isOnNavMesh)
-            //    return;
+        protected override State GetTransition()
+        {
+            if (toIdle)
+            {
+                Debug.Log("voy a idle");
+                toIdle = false;
+                return ((Paseo)Parent).Idle;
+            }
+            else
+            {
+                return null;
+            }
+        }
 
-            //if (Time.time < m_NextRepathTime)
-            //    return;
-
-            //m_NextRepathTime = Time.time + Mathf.Max(0.1f, m_RepathIntervalSeconds);
-
-            //bool needsNewTarget = !agent.hasPath || agent.pathPending || m_Actions.HasReachedCurrentDestination();
-            //if (!needsNewTarget)
-            //    return;
+        protected override void OnUpdate(float deltaTime)
+        {
+            base.OnUpdate(deltaTime);
 
             var actions = Actions;
-
             var agent = actions.NavMeshAgent;
             if (agent == null || !agent.enabled || !agent.isOnNavMesh)
             {
@@ -65,9 +106,14 @@ namespace HierarchicalStateMachine
                 return;
             }
 
+            //if (actions.HasReachedCurrentDestination())
+            //{
+            //    toIdle = true;
+            //    return;
+            //}
+
             if (!agent.hasPath || actions.HasReachedCurrentDestination())
             {
-                //if (TryPickRandomNavMeshPoint(transform.position, Mathf.Max(2f, m_WanderRadius), out var dest))
                 if (FSM.TryPickRandomNavMeshPoint(actions.transform.position, 20f, out var dest))
                 {
                     actions.TryMoveToWorldPosition(dest);
@@ -75,7 +121,8 @@ namespace HierarchicalStateMachine
             }
             else
             {
-
+                toIdle = true;
+                return;
             }
         }
     }
@@ -104,17 +151,19 @@ namespace HierarchicalStateMachine
 
         protected override void OnEnter()
         {
-            Debug.Log("ENTRANDO A EMERGENCIA");
+            Debug.Log("ENTRANDO A COMBAT");
         }
     }
 
     public class Paseo : State
     {
         public readonly Idle Idle;
+        public readonly Patrol Patrol;
 
         public Paseo(StateMachine m, State parent) : base(m, parent)
         {
             Idle = new Idle(m, this);
+            Patrol = new Patrol(m, this);
         }
 
         protected override State GetInitialState() => Idle;
