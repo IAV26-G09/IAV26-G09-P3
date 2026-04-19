@@ -232,7 +232,7 @@ namespace Unity.FPS.Gameplay
 
             if (m_InputHandler.GetChangeViewButtonRelease())
             {
-                ChangeCameraView();
+                //ChangeCameraView();
             }
 
             UpdateCharacterHeight(false);
@@ -543,7 +543,10 @@ namespace Unity.FPS.Gameplay
 
         void ChangeCameraView()
         {
-
+            if (GameFlowManager.Instance != null)
+            {
+                GameFlowManager.Instance.CycleCamera();
+            }
         }
     }
 }

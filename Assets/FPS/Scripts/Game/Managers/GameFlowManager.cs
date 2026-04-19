@@ -33,14 +33,45 @@ namespace Unity.FPS.Game
         float m_TimeLoadEndGameScene;
         string m_SceneToLoad;
 
+        // gestion de la camara
+        // dado que la plantilla es un caos que desactiva los scripts del input del jugador y otras tantas cosas y ademas da errores en los hashes de los prefabs al iniciar la ejecucion vamos a simplificarlo por aqui
+        private Camera[] m_Cameras;
+        int m_CamId = 0;
+        [SerializeField]
+        private Camera topDownCamera;
+
+
+        private static GameFlowManager _instance;
+        public static GameFlowManager Instance => _instance;
+       
         void Awake()
         {
+            if (_instance != null)
+            {
+                Destroy(_instance);
+            }
+            else
+            {
+                _instance = new GameFlowManager();
+            }
+
             EventManager.AddListener<PlayerDeathEvent>(OnPlayerDeath);
         }
 
         void Start()
         {
+            DontDestroyOnLoad(gameObject);
             AudioUtility.SetMasterVolume(1);
+
+            int count = Camera.allCamerasCount;
+            m_Cameras = new Camera[count];
+            Camera.GetAllCameras(m_Cameras);
+            Debug.Log(m_Cameras.Length);
+
+            if (topDownCamera != null)
+            {
+                topDownCamera.enabled = false;
+            }
         }
 
         void Update()
@@ -58,6 +89,12 @@ namespace Unity.FPS.Game
                     SceneManager.LoadScene(m_SceneToLoad);
                     GameIsEnding = false;
                 }
+            }
+
+            if (Input.GetKeyDown(KeyCode.N))
+            {
+                Debug.Log("CycleCamera");
+                CycleCamera();
             }
         }
 
@@ -107,6 +144,15 @@ namespace Unity.FPS.Game
         void Respawn()
         {
 
+        }
+
+        public void CycleCamera()
+        {
+            if (m_Cameras.Length == 0) return;
+
+            m_Cameras[m_CamId].enabled = false;
+            m_CamId = (m_CamId + 1) % m_Cameras.Length;
+            m_Cameras[m_CamId].enabled = true;
         }
 
         void OnDestroy()

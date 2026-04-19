@@ -1679,6 +1679,7 @@ GameObject:
   - component: {fileID: 4512190218612294183}
   - component: {fileID: 1722169817429297685}
   - component: {fileID: 2931731295390458686}
+  - component: {fileID: 4828794809904590943}
   m_Layer: 0
   m_Name: UCM_Bot
   m_TagString: Untagged
@@ -2158,6 +2159,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Unity.FPS.Gameplay.PlayerRespawner
   ShowTopMostFoldoutHeaderGroup: 1
+  m_MinHorizontalSeparationFromPlayers: 3
+  m_NavMeshSampleRadius: 4
 --- !u!114 &-5875526496074363916
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2344,9 +2347,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FSM
   ShowTopMostFoldoutHeaderGroup: 1
-  wanderRadius: 25
-  repathIntervalSeconds: 1.25
-  stoppingDistance: 1.5
+  m_WanderRadius: 25
+  m_RepathIntervalSeconds: 1.25
+  m_LogStateTransitions: 0
+--- !u!114 &4828794809904590943
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1744405021316778650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8bef0e84d86e8a547919000201ff248f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BotGameplayActions
+  m_AutoCreateNavMeshAgent: 1
+  m_DefaultStoppingDistance: 1.5
+  m_EnableWeaponManagerForBot: 0
 --- !u!1 &1788606075170186430
 GameObject:
   m_ObjectHideFlags: 0
@@ -4755,7 +4773,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6319161417841453249
 Transform:
   m_ObjectHideFlags: 0
@@ -4778,7 +4796,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5789181877818237140}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 4
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}

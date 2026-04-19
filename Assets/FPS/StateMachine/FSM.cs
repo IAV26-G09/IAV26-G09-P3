@@ -65,8 +65,6 @@ namespace HierarchicalStateMachine
 
     public class Patrol : State
     {
-        bool toIdle = false;
-
         public Patrol(StateMachine m, State parent) : base(m, parent)
         {
         }
