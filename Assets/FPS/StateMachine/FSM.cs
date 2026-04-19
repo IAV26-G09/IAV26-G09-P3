@@ -27,7 +27,6 @@ namespace HierarchicalStateMachine
     {
         float counter = 0.0f;
         float time = 5.0f;
-        bool toPatrol = false;
 
         public Idle(StateMachine m, State parent) : base(m, parent)
         {
@@ -38,12 +37,18 @@ namespace HierarchicalStateMachine
             Debug.Log("ENTRANDO A IDLE");
         }
 
+        protected override void OnExit()
+        {
+            Actions.StopNavigation();
+        }
+
         protected override State GetTransition()
         {
-            if (toPatrol)
+            if (counter >= time)
             {
-                Debug.Log("voy a patrol");
-                toPatrol = false;
+                counter = 0f;
+
+                Debug.Log("VOY A PATROL");
                 return ((Paseo)Parent).Patrol;
             }
             else
@@ -54,16 +59,7 @@ namespace HierarchicalStateMachine
 
         protected override void OnUpdate(float deltaTime)
         {
-            base.OnUpdate(deltaTime);
-            
             counter += deltaTime;
-            Debug.Log(counter);
-            if (counter >= time)
-            {
-                toPatrol = true;
-                counter = 0;
-                return;
-            }
         }
     }
 
@@ -77,15 +73,15 @@ namespace HierarchicalStateMachine
 
         protected override void OnEnter()
         {
-            Debug.Log("ENTRANDO A IDLE");
+            Debug.Log("ENTRANDO A PATROL");
         }
 
         protected override State GetTransition()
         {
-            if (toIdle)
+            var agent = Actions.NavMeshAgent;
+            if (agent.hasPath && Actions.HasReachedCurrentDestination())
             {
-                Debug.Log("voy a idle");
-                toIdle = false;
+                Debug.Log("VOY A IDLE");
                 return ((Paseo)Parent).Idle;
             }
             else
@@ -106,23 +102,14 @@ namespace HierarchicalStateMachine
                 return;
             }
 
-            //if (actions.HasReachedCurrentDestination())
-            //{
-            //    toIdle = true;
-            //    return;
-            //}
-
-            if (!agent.hasPath || actions.HasReachedCurrentDestination())
+            if (!agent.hasPath)
             {
                 if (FSM.TryPickRandomNavMeshPoint(actions.transform.position, 20f, out var dest))
                 {
+                    Debug.Log("Nuevo punto de ruta");
+
                     actions.TryMoveToWorldPosition(dest);
                 }
-            }
-            else
-            {
-                toIdle = true;
-                return;
             }
         }
     }
@@ -139,7 +126,7 @@ namespace HierarchicalStateMachine
         {
             if (paseo)
             {
-                Debug.Log("voy a paseo");
+                Debug.Log("VOY A PASEO");
                 paseo = false;
                 return ((BotRoot)Parent).Paseo;
             }
@@ -174,7 +161,7 @@ namespace HierarchicalStateMachine
         public readonly Paseo Paseo;
         public readonly Combat Combat;
 
-        private bool combat = true;
+        private bool combat = false;
 
         public BotRoot(StateMachine m) 
             : base(m, null)
@@ -189,7 +176,7 @@ namespace HierarchicalStateMachine
         {
             if (combat)
             {
-                Debug.Log("voy a combate");
+                Debug.Log("VOY A COMBATE");
                 combat = false;
                 return Combat;
             }
@@ -417,7 +404,7 @@ public class FSM : NetworkBehaviour
 
             if (path != lastPath)
             {
-                Debug.Log(path);
+                //Debug.Log(path);
                 lastPath = path;
             }
         }
