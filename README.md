@@ -152,10 +152,10 @@ Las clases principales que se han desarrollados son las siguientes:
 classDiagram
       BotGameplayActions <|-- MonoBehaviour
       FSM <|-- NetworkBehaviour
-      State
-      StateMachine
-      StateMachineBuilder
-      TransitionManager
+      class State
+      class StateMachine
+      class StateMachineBuilder
+      class TransitionManager
 ```
 
 Implementación: Se adjuntan los scripts con el código fuente que implementan las principales características. Los scripts están documentados para mayor claridad y detalle sobre su implementación.
