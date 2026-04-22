@@ -40,10 +40,12 @@ Este prototipo sirve para poner en práctica una de las herramientas de toma de 
 ## Punto de partida
 Hemos partido de un proyecto base proporcionado por el profesor y disponible en este repositorio: [fps-online](https://github.com/narratech/fps-online).
 
-La base consiste en un menú inicial en el que, para jugar, se debe establecer el Host de la partida, que será un jugador más, con: un nombre, una dirección IP, un puerto y el personaje que jugará. A la partida *hosteada* por este Host se le podrán unir otros jugadores, estableciendo también: un nombre, una dirección IP, un puerto y el personaje que jugará. En este menú también se podrán consultar los controles del juego.
+La base consiste en un menú inicial en el que, para jugar, se debe establecer el Host de la partida con: un nombre, una dirección IP, un puerto y el personaje que jugará. A la partida *hosteada* por este Host se le podrán unir otros jugadores, estableciendo también: un nombre, una dirección IP, un puerto y el personaje que jugará. En este menú también se podrán consultar los controles del juego.
+
+De los personajes jugables seleccionables, la implementación de la práctica se centra en la inteligencia artificial que controlará a *UCM_Bot*. Para pruebas de mecánicas de juego, no inteligencia artificial, se puede seleccionar al personaje *Human_Prefab*, que cuenta con los controles de teclado y mando especificados en la ventana de juego *Controls*. 
 
 Existe además un botón con el que iniciar el juego, que lleva al nivel de la cárcel espacial, un entorno 3D explorable donde irán apareciendo:
-- Prisioneros. Aparecen de alguno de los puntos de regeneración, y pueden ser controlados por jugadores humano o virtuales (bots implementados con técnicas de IA). Pueden moverse, disparar, apuntar, cambiar de arma, saltar, agacharse, correr y hasta usar un propulsor (jetpack) para «volar».
+- Prisioneros. Aparecen en alguno de los puntos de regeneración. Pueden moverse, disparar, apuntar, cambiar de arma, saltar, agacharse, correr y usar un propulsor (jetpack) para «volar». Cuando un jugador se une a una partida será un prisionero y sus movimientos podrán ser implementados mediante mecánicas de IA, en el caso de seleccionar al personaje *UCM_Bot*, o mediante teclado y ratón o mando, en el caso de seleccionar al personaje *Human_Prefab*.
 
 - Armas. Sólo los prisioneros pueden cogerlas y utilizarlas, existiendo de varios tipos:
 1. Pistola (gun), el arma que todos los prisioneros tienen por defecto.
@@ -57,8 +59,6 @@ Existe además un botón con el que iniciar el juego, que lleva al nivel de la c
 - Utensilios. Como botiquines para recuperar salud o el propulsor para poder «volar» con él.
 - Vigilantes robóticos. Hay de dos tipos, las torretas (turrets) y los robots flotantes (hover bots). Las primeras son más poderosas pero permanecen ancladas en sus ubicaciones originales, mientras que los segundos son más débiles pero tienen movilidad. Todos los vigilantes robóticos disparan a los prisioneros y pueden matarlos. 
 
-El avatar cuenta controles de movimiento con WASD. Y de disparo con clic izquierdo. También podrá cambiar de arma, en caso de tener varias, con la rueda del ratón.
-
 #### Jerarquía de recursos
 ```text
 Assets
@@ -69,6 +69,7 @@ Assets
 │   ├── Prefabs
 │   ├── Scenes
 │   ├── Scripts
+│   ├── StateMachine
 │   └── Tutorials
 ├── NavMeshComponents
 ├── Rendering
@@ -84,17 +85,16 @@ Dentro de FPS los recursos que conforman el proyecto están organizados de esta 
 * **Art**. Fuentes, materiales, modelos, shaders y texturas.
 * **Audio**. Efectos de sonido y música usada durante el juego.
 * **Prefabs**. Los prefabricados que se usan en el juego, del avatar, los enemigos, la interfaz y las distintas partes del escenario. 
-* **Scenes**. La escena inicial del menú, la escena de la cárcel y las escenas de victoria y derrota.
-* **Scripts**. Todas las clases con el código organizadas en una jerarquía de carpetas.
-  * **AI**.
-  * **Editor**.
-  * **Game**. 
-  * **Gameplay**. 
-  * **MiMultiplayer**.
-  * **UI**.
+* **Scenes**. La escena inicial del menú, la escena de la cárcel, las escenas de victoria y derrota, etc. Así como los NavMesh .asset de los distintos escenarios.
+* **Scripts**. Todas las clases con el código del proyecto base organizadas en una jerarquía de carpetas.
+* **StateMachine**. Todas las clases con el código de la implementación de la práctica 3 "Disturbios orbitales" para la asignatura de Inteligencia Artificial para Videojuegos, usadas para la gestión de la máquina de estados de los agentes *UCM_Bot* y de sus acciones.
+* **Tutorials**. Recursos utilizados para la gestión del tutorial del proyecto base.
 
 ### Estructura de las escenas
+Para la implementación del proyecto son relevantes dos escenas:
+* IntroMenu: Se muestra un botón para jugar y un botón para visualizar los controles. Al darle al botón de jugar se pasa primero por una configuración de partida donde se debe establecer el Host de la partida con: un nombre, una dirección IP, un puerto y el personaje que jugará. A la partida *hosteada* por este Host se le podrán unir otros jugadores, estableciendo también: un nombre, una dirección IP, un puerto y el personaje que jugará. En este menú también se podrán consultar los controles del juego.
 
+* PrisonScene: El mundo virtual con obstáculos, enemigos y puntos de regenaración de personajes y objetos, con su respectiva NavMesh para su correcta navegación.
 
 ## Planteamiento del problema
 **Las características principales del prototipo son:**
@@ -109,20 +109,27 @@ Dentro de FPS los recursos que conforman el proyecto están organizados de esta 
 * **E.** En conjunto el agente trata de maximizar la métrica principal del juego que es número de enemigos que he eliminado – número de veces que he sido eliminado, aunque opcionalmente también se podrían mostrar por pantalla otras métricas interesantes como número de armas conseguidas, número de utensilios conseguidos, número de vigilantes robóticos eliminados… todo ello con el contexto de la duración de la partida en segundos y el ratio de fotogramas por segundo, por ejemplo.
 
 ## Diseño de la solución
-
-### Estados de los agentes
-
-- **Torreta**:
+### Estados del bot prisionero
 ```mermaid
 graph TD;
-  OCIOSO<-- Movimiento ratón -->MOVIMIENTO_MANUAL;
-  MOVIMIENTO_MANUAL<-- Clic derecho -->MOVIMIENTO_AUTOMATICO;
-  OCIOSO<-- Clic derecho -->MOVIMIENTO_AUTOMATICO;
+  
 ```
 
-Los scripts usados para cada agente de IA han sido:
-* **Torreta**: 
-    
+Los scripts usados para la gestión de estados del agente:
+* BotGameplayActions
+* FSM
+* State
+* StateMachine
+* States
+* TransitionManager
+
+Para la implementación de la máquina de estados se ha visualizado esta como un **árbol**, de tal forma que un diagrama de estados como el anterior se podría desplegar de esta forma:
+```mermaid
+graph TD;
+  
+```
+
+
 
 ## Implementación
 **Tareas:**
@@ -130,43 +137,65 @@ Las tareas y el esfuerzo ha sido repartido de manera equitativa entre las autora
 
 | Estado  |  Tarea  |  Fecha  |  
 |:-:|:--|:-:|
-|  |  |  |
-|  | AMPLIACIONES |  |
-|  |  |  |
+| ✔ | Organización del proyecto | 15-4-2026 |
+| ✔ | Máquina de estados base | 18-4-2026 |
+| ✔ | Manager de transiciones de estados | 18-4-2026 |
+| ✔ | Máquina de estados enlazada con FSM | 18-4-2026 |
+| ✔ | FSM enlazada con BotGameplayActions | 19-4-2026 |
+| ✔ | Cámara top down | 19-4-2026 |
+| ✔ | Organización del proyecto | 15-4-2026 |
+| ✔ | README | 23-4-2026 |
 
 **Diagrama de clases:**
 Las clases principales que se han desarrollados son las siguientes:
+```mermaid
+classDiagram
+      BotGameplayActions <|-- MonoBehaviour
+      FSM <|-- NetworkBehaviour
+      State
+      StateMachine
+      StateMachineBuilder
+      TransitionManager
+```
 
 Implementación: Se adjuntan los scripts con el código fuente que implementan las principales características. Los scripts están documentados para mayor claridad y detalle sobre su implementación.
 
 | Característica del prototipo | Descripción de la característica | Script |
 |:-:|:-:|:-:|
-| A | Control del jugador | [ControlJugador](https://github.com/IAV26-G09/IAV26-G09-P2/blob/main/Assets/Scripts/Comportamientos/ControlJugador.cs) |
-| B | Configuración creación minotauros | [MinoManager](https://github.com/IAV26-G09/IAV26-G09-P2/blob/main/Assets/Scripts/Comportamientos/MinoManager.cs) |
-| B | Comportamiento vigías | [Vigilar](https://github.com/IAV26-G09/IAV26-G09-P2/blob/main/Assets/Scripts/Comportamientos/Vigilar.cs) |
-| B | Campo de visión minotauros | [CampoVision](https://github.com/IAV26-G09/IAV26-G09-P2/blob/main/Assets/Scripts/Comportamientos/CampoVision.cs) |
-| B | Seguimiento hacia el avatar | [Llegada](https://github.com/IAV26-G09/IAV26-G09-P2/blob/main/Assets/Scripts/Comportamientos/Llegada.cs) |
-| B | Área de influencia | [Slow](https://github.com/IAV26-G09/IAV26-G09-P2/blob/main/Assets/Scripts/Comportamientos/Slow.cs) |
-| C | A* | [Graph](https://github.com/IAV26-G09/IAV26-G09-P2/blob/main/Assets/Scripts/Graphs/Graph.cs) |
-| C | A* costes dinámicos | [InfluenceCollision](https://github.com/IAV26-G09/IAV26-G09-P2/blob/main/Assets/Scripts/Comportamientos/InfluenceCollision.cs) |
-| C | Mostrar hilo | [TheseusGraph](https://github.com/IAV26-G09/IAV26-G09-P2/blob/main/Assets/Scripts/Graphs/TheseusGraph.cs) |
-| C | Mostrar ovillos | [Ovillo](https://github.com/IAV26-G09/IAV26-G09-P2/blob/main/Assets/Scripts/Extra/Ovillo.cs) |
-| C | Heurísticas | [TheseusGraph](https://github.com/IAV26-G09/IAV26-G09-P2/blob/main/Assets/Scripts/Graphs/TheseusGraph.cs) |
-| D | Suavizado | [Graph](https://github.com/IAV26-G09/IAV26-G09-P2/blob/main/Assets/Scripts/Graphs/Graph.cs) |
-| E | Navegación automática | [SeguirCamino](https://github.com/IAV26-G09/IAV26-G09-P2/blob/main/Assets/Scripts/Comportamientos/SeguirCamino.cs) |
+| A | Cámaras | []() |
+| B | Acciones del agente | [BotGameplayActions](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/BotGameplayActions.cs) |
+| D | Máquina de estados finita jerárquica | [FSM](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/FSM.cs) |
+| D | Máquina de estados finita jerárquica | [State](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/State.cs) |
+| D | Máquina de estados finita jerárquica | [StateMachine](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/StateMachine.cs) |
+| D | Máquina de estados finita jerárquica | [TransitionManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/TransitionManager.cs) |
 
-### Información básica
-Los ficheros FSM.cs y BotGameplayActions.cs sobre los que hay que trabajar más para cambiarlos por completo y tener allí tanto la máquina de estados jerárquica (capaz de cargar datos de una FSM particular de un fichero de texto y ejecutarla después) como el gestor de acciones con el que CONCRETAMOS lo que se hace o consulta en cada estado o transición de la FSM.
+Detallamos a continuación la información sobre las clases y prefabs más relevantes:
 
+| Nuevas respecto a la plantilla | De la plantilla modificadas |  
+|:-:|:-:|
+| 🟣​​ | 🟡​ |
+
+### Clases
+### BotGameplayActions 🟡
+Gestor de acciones.
+
+#### FSM 🟡
+
+#### State 🟣
+
+#### StateMachine 🟣
+
+#### TransitionManager 🟣
+
+### ScriptableObjects
+
+#### States 🟣
+
+### Prefabs
 *Human_Prefab* representa al jugador humano y *UCM_Bot* es la IA que hay que programar si se quiere tener un bot contra el que enfrentarse.
 
-### Human_Prefab
-Ruta: Assets/FPS/Scripts/MiMultiplayer/Human_Prefab.prefab
-
-Es el “paquete completo” del jugador: control FPS, cámara, armas, vida/daño y los componentes oficiales de Netcode que permiten hacer multijugador en Unity.
-
-Lo más relevante que puede encontrarse en la raíz de este prefab es esto:
-
+#### Human_Prefab
+Es el "paquete completo" del jugador: control FPS, cámara, armas, vida/daño y los componentes oficiales de Netcode que permiten hacer multijugador en Unity. Lo más relevante que puede encontrarse en la raíz de este prefab es:
 * NetworkObject: identidad de red del jugador.
 * PlayerInput (Input System): componente de Unity que gestiona dispositivos/mapas de entrada.
 * NewMonoBehaviourScript (tu “ClientPlayerMove” real, el hombre es que no está bien puesto): habilita cámara/controles sólo para el propietario, crea el HUD del marcador, etc.
@@ -178,13 +207,11 @@ Lo más relevante que puede encontrarse en la raíz de este prefab es esto:
 * ClientNetworkAnimator: Script para hacer animación sincronizada.
 * Rigging / IK / Weapon sync: WeaponIKSync, ThirdPersonWeaponSync, RigBuilder, constraints, etc. Son scripts de sincronización (por ejemplo PlayerHealthSync, ThirdPersonWeaponSync, LocalVisibility...).
 * UI (CanvasScaler, GraphicRaycaster, TMP): el canvas world-space del nametag y elementos.
-* CharacterController: componente nativo de Unity para mover un “personaje tipo cápsula” en el mundo sin usar un Rigidbody. Gestiones colisiones, deslizamiento, movimiento 'cinemático', grounding básico... pero no hace nada más.
-* PlayerCharacterController: Script de este proyecto que hace las veces de MENTE del CharacterController, lee la entrada con PlayerInputHandler, y lo convierte en movimiento, rotación, coordina la cámara, la animación, está pendiente de la salud, muerte, apuntado, etc. 
+* CharacterController: componente nativo de Unity para mover un “personaje tipo cápsula” en el mundo sin usar un Rigidbody. Gestiones colisiones, deslizamiento, movimiento 'cinemático', grounding básico.
+* PlayerCharacterController: Script de este proyecto que hace las veces de MENTE del CharacterController, lee la entrada con PlayerInputHandler, y lo convierte en movimiento, rotación, coordina la cámara, la animación, está pendiente de la salud, muerte, apuntado, etc.
 
-### UCM_Bot
-Ruta: Assets/FPS/Scripts/MiMultiplayer/UCM_Bot.prefab
-
-En UCM_Bot encontramos componentes muy parecidos, aunque se ha añadido FSM como ejemplo de dónde podría ir una máquina de estados que tome las decisiones de ese bot (hay que sustituir COMPLETAMENTE todo ese código), y BotGameplayActions para hacer las veces de gestor de acciones, aunque también hace cosas como crear el componente NavMeshAgent en caso de que no lo tenga (que de hecho no lo tiene añadido ahora mismo).
+#### UCM_Bot
+En UCM_Bot encontramos componentes muy parecidos, aunque se ha añadido FSM como gestor de máquina de estados y BotGameplayActions como gestor de acciones, aunque también hace cosas como crear el componente NavMeshAgent en caso de que no lo tenga.
 
 ## Pruebas y métricas
 ### Plan de pruebas
@@ -192,6 +219,7 @@ En UCM_Bot encontramos componentes muy parecidos, aunque se ha añadido FSM como
 Serie corta y rápida posible de pruebas que pueden realizarse para verificar que se cumplen las características requeridas:
 
 ### Métricas tomadas
+<!--
 En un PC de estas características:
 - **CPU:** AMD Ryzen 7 5700G a 3.80 GHz
 - **GPU:** NVIDIA GeForce GTX 1660 SUPER 6 GB
@@ -200,6 +228,7 @@ En un PC de estas características:
 - **Versión de Unity:** 6000.0.66f2
 
 Se han tomado las siguientes métricas:
+-->
 
 ### Vídeo
 - [Vídeo demostración]()
