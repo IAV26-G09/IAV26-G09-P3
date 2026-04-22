@@ -94,7 +94,7 @@ Dentro de FPS los recursos que conforman el proyecto están organizados de esta 
 Para la implementación del proyecto son relevantes dos escenas:
 * IntroMenu: Se muestra un botón para jugar y un botón para visualizar los controles. Al darle al botón de jugar se pasa primero por una configuración de partida donde se debe establecer el Host de la partida con: un nombre, una dirección IP, un puerto y el personaje que jugará. A la partida *hosteada* por este Host se le podrán unir otros jugadores, estableciendo también: un nombre, una dirección IP, un puerto y el personaje que jugará. En este menú también se podrán consultar los controles del juego.
 
-* PrisonScene: El mundo virtual con obstáculos, enemigos y puntos de regenaración de personajes y objetos, con su respectiva NavMesh para su correcta navegación.
+* PrisonScene: El mundo virtual con obstáculos, enemigos y puntos de regeneración de personajes y objetos, con su respectiva NavMesh para su correcta navegación.
 
 ## Planteamiento del problema
 **Las características principales del prototipo son:**
@@ -218,10 +218,25 @@ En UCM_Bot encontramos componentes muy parecidos, aunque se ha añadido FSM como
 ## Pruebas y métricas
 ### Plan de pruebas
 
-Serie corta y rápida posible de pruebas que pueden realizarse para verificar que se cumplen las características requeridas:
+Serie corta y rápida posible de pruebas a nivel offline y local que pueden realizarse para verificar que se cumplen las características requeridas:
 
-### Métricas tomadas
+* **1 (A).** Iniciar el juego, seleccionar la opción de *Play* y a continuación *Host*. Viene configurado previamente para hacer pruebas ya que los campos no necesitan valores estrictamente funcionales para iniciar partida, pero en caso de que no fuese así:
+      * Rellenar los campos, en el de Nickname cualquier nombre, en el de IP Adress configurar su IP local privada, en puerto el valor 0000 y en personaje seleccionar UCM_Bot. Seleccionar *"START GAME"*.
+* **1 (A).** Observar a través de tanto la vista del agente como alternando con el botón N a la visión de planta del nivel el mundo virtual las diferentes cámaras y el mundo virtual descrito.
+* **1 (B).** Observar a través del comportamiento del agente las acciones que puede realizar, dónde ha sido generado y dónde se genera tras morir.
+* **1 (C).** Observar el movimiento del agente a lo largo del nivel y su reaccion ante enemigos.
+* **1 (D).** Observar los cambios de estado del agente ante sus distintas circunstancias, como al percibir a un enemigo, eliminarlo y volver a la patrulla.
+* **1 (E).** Observar en la interfaz de usuario las distintas métricas tomadas en tiempo real sobre las estadísticas del agente.
+
+Las métricas que se tomarán serán:
+- Ratio de enemigos eliminados/veces que el bot ha sido eliminado
+- Número de armas conseguidas
+- Número de objetos conseguidos
+- Duración de una partida hasta ser eliminado en segundos
+- Ratio de fotogramas por segundo
+
 <!--
+### Métricas tomadas
 En un PC de estas características:
 - **CPU:** AMD Ryzen 7 5700G a 3.80 GHz
 - **GPU:** NVIDIA GeForce GTX 1660 SUPER 6 GB
@@ -233,11 +248,17 @@ Se han tomado las siguientes métricas:
 -->
 
 ### Vídeo
-- [Vídeo demostración]()
+- Próximamente
+<!-- - [Vídeo demostración]() -->
+
 
 ## Ampliaciones
 ### Posibles realizadas
-Se han pensado las siguientes posibles ampliaciones:
+Se han pensado las siguientes posibles ampliaciones: 
+- Sistema de enfrentamiento de dos o más bots entre si de distintos tipos de IA cada uno.
+- Ampliaciones en la complejidad de la percepción:
+      - Sistema de audición
+      - Memoria 
 
 ## Conclusiones
 Para esta práctica se ha diseñado e implementado una máquina de estados jerárquica finita aplicada a la inteligencia artificial de bots que simulan las acciones de un jugador humano en un juego de disparos en primera persona, separando la toma de decisiones de la ejecución de acciones.
