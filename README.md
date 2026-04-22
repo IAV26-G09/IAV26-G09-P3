@@ -176,10 +176,12 @@ Detallamos a continuación la información sobre las clases y prefabs más relev
 | 🟣​​ | 🟡​ |
 
 ### Clases
-### BotGameplayActions 🟡
+
+#### BotGameplayActions 🟡
 Gestor de acciones.
 
 #### FSM 🟡
+Gestor de máquina de estados.
 
 #### State 🟣
 
