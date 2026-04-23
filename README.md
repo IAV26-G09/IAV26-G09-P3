@@ -146,15 +146,6 @@ stateDiagram
       Paseo --> Combate: Al tener contacto visual con el enemigo
       Combate --> Paseo: Al perder contacto visual con el enemigo durante más de X segundos
 ``` 
-```mermaid
-stateDiagram
-     direction LR
-     state Padre {
-      Supraestado
-     }
-      From --> Padre
-      Padre --> To
-```
 #### Diagrama de ejemplo, desplegado
 
 La máquina de estados, [*StateMachine*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/StateMachine.cs), almacena una referencia al nodo raíz del árbol, será el primer nodo al que se entre al iniciar la máquina y con ello el *mecanismo* empieza a funcionar. La gestión de la ejecución de esta se delega en la clase [*FSM*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/FSM.cs) la cual se hace responsable de llamar al método *Tick(deltaTime)* de la *StateMachine*.
@@ -166,7 +157,16 @@ Cada nodo en el árbol máquina de estados es entonces un estado, [*State*](http
 * *GetTransition()*: Método que se usa para definir si un estado quiere transicionar, si quiere hacerlo devuelve el estado al que quiere ir y si no devuelve nulo.
 Al ser una máquina de estados jerárquica los estados podrán contener otros estados, que a su vez podrán contener otros estados, y así indefinidamente, para gestionar esto se puede establecer: Un **estado hijo inicial** por defecto, al que se entrará cuando se entre en el estado padre, bajando un nivel en el árbol, por lo que, por ejemplo, al entrar al estado raíz se entra al estado hijo inicial H* (si el estado hijo inicial es nulo significa que estamos en una hoja del árbol) y un **estado hijo activo** a actualizar en cada update de manera recursiva tal que cada estado se actualice a sí mismo y llame a actualizar a su hijo activo, que hará lo mismo.
 
-Para gestionar las transiciones se hace uso de un [*TransitionsManager*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/TransitionManager.cs) el cual triggerea las transiciones pidiendo cambiar de estado a la máquina de estados. Si una transición va a tener efecto entre dos estados se busca el nodo padre de mayor profundidad común a ambos y se procede a: 1. Salir de todos los estados desde el estado destino hasta el nodo padre calculado y 2. Ir entrando en todos los nodos desde el nodo padre calculado y hasta el estado destino. 
+Para gestionar las transiciones se hace uso de un [*TransitionsManager*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/TransitionManager.cs) el cual triggerea las transiciones pidiendo cambiar de estado a la máquina de estados. Si una transición va a tener efecto entre dos estados se busca el nodo padre de mayor profundidad común a ambos y se procede a: 1. Salir de todos los estados desde el estado destino hasta el nodo padre calculado y 2. Ir entrando en todos los nodos desde el nodo padre calculado y hasta el estado destino.
+```mermaid
+stateDiagram
+     direction LR
+     state Padre {
+      Supraestado
+     }
+      From --> Padre
+      Padre --> To
+```
 
 Para las acciones y condiciones concretas se hace uso de la clase [*BotGameplayActions*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/BotGameplayActions.cs) la cual centraliza métodos como *HasReachedCurrentDestination()* o *TryMoveToWorldPosition()* para que los estados puedan usarlos para definir comportamientos en su *OnUpdate()* o condiciones para transicionar a otro estado en su *GetTransition()*.
 
