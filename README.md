@@ -140,12 +140,20 @@ stateDiagram
       }
       state Combate {
             %% direction LR
-            [*] --> Perseguir
-            Disparar --> Perseguir: Al perder contacto visual
-            Perseguir --> Disparar: Al tener conctacto visual
+            [*] --> Disparar
+            Disparar 
       }
       Paseo --> Combate: Al tener contacto visual con el enemigo
       Combate --> Paseo: Al perder contacto visual con el enemigo durante más de X segundos
+``` 
+```mermaid
+stateDiagram
+     direction LR
+     state Padre {
+      Supraestado
+     }
+      From --> Padre
+      Padre --> To
 ```
 #### Diagrama de ejemplo, desplegado
 
@@ -163,6 +171,40 @@ Para gestionar las transiciones se hace uso de un [*TransitionsManager*](https:/
 Para las acciones y condiciones concretas se hace uso de la clase [*BotGameplayActions*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/BotGameplayActions.cs) la cual centraliza métodos como *HasReachedCurrentDestination()* o *TryMoveToWorldPosition()* para que los estados puedan usarlos para definir comportamientos en su *OnUpdate()* o condiciones para transicionar a otro estado en su *GetTransition()*.
 
 ### Diseño de los estados del bot prisionero
+### Estados del bot prisionero
+```mermaid
+stateDiagram
+    [*] --> Paseo
+      state Paseo {
+            [*] --> Movimiento
+            Movimiento --> Pertrechado: Si hay algun utensilio/arma en las inmediaciones
+            Pertrechado --> Movimiento: Tras conseguir el utensilio/arma
+      }
+      state Combate {
+            [*] --> Disparo
+            state Disparo {
+                  [*] --> Correteo
+                  Correteo
+                  state Cobertura {
+                        [*] --> Recarga: Si armas disponibles < 1
+                        [*] --> Cambio_de_arma: Si armas disponibles >= 1
+                        Recarga
+                        Cambio_de_arma
+                  }
+
+                  Correteo --> Cobertura: Al gastar munición y haber cobertura cerca
+                  Cobertura --> Correteo: Al recargar munición
+            }
+            Persecucion
+
+            Disparo --> Persecucion: Al perder de vista al enemigo
+            Persecucion --> Disparo: Al rehacer contacto visual con el enemigo
+      }
+
+      Paseo --> Combate: Al detectar al enemigo
+      Combate --> Paseo: Al eliminar al enemigo
+``` 
+
 
 ## Implementación
 **Tareas:**
@@ -195,12 +237,12 @@ Implementación: Se adjuntan los scripts con el código fuente que implementan l
 
 | Característica del prototipo | Descripción de la característica | Script |
 |:-:|:-:|:-:|
-| A | Cámaras | []() |
-| B | Acciones del agente | [BotGameplayActions](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/BotGameplayActions.cs) |
-| D | Máquina de estados finita jerárquica | [FSM](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/FSM.cs) |
-| D | Máquina de estados finita jerárquica | [State](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/State.cs) |
-| D | Máquina de estados finita jerárquica | [StateMachine](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/StateMachine.cs) |
-| D | Máquina de estados finita jerárquica | [TransitionManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/TransitionManager.cs) |
+| A | Cámaras | [GameFlowManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/Game/Managers/GameFlowManager.cs) |
+| B | Acciones del agente | [BotGameplayActions](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/BotGameplayActions.cs) |
+| D | Máquina de estados finita jerárquica | [FSM](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/FSM.cs) |
+| D | Máquina de estados finita jerárquica | [State](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/State.cs) |
+| D | Máquina de estados finita jerárquica | [StateMachine](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/StateMachine.cs) |
+| D | Máquina de estados finita jerárquica | [TransitionManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/TransitionManager.cs) |
 
 Detallamos a continuación la información sobre las clases y prefabs más relevantes:
 
@@ -210,21 +252,19 @@ Detallamos a continuación la información sobre las clases y prefabs más relev
 
 ### Clases
 
-#### [BotGameplayActions](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/BotGameplayActions.cs) 🟡
+#### [BotGameplayActions](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/BotGameplayActions.cs) 🟡
 Gestor de acciones.
 
-#### [FSM](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/FSM.cs) 🟡
+#### [FSM](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/FSM.cs) 🟡
 Gestor de máquina de estados.
 
-#### [State](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/State.cs) 🟣
+#### [StateMachine](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/StateMachine.cs) 🟣
 
-#### [StateMachine](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/StateMachine.cs) 🟣
-
-#### [TransitionManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/TransitionManager.cs) 🟣
+#### [TransitionManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/TransitionManager.cs) 🟣
 
 ### ScriptableObjects
 
-#### [States](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/States.cs) 🟣
+#### [State](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/State.cs) 🟣
 
 ### Prefabs
 *Human_Prefab* representa al jugador humano y *UCM_Bot* es la IA que hay que programar si se quiere tener un bot contra el que enfrentarse.
