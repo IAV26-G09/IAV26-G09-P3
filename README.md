@@ -69,7 +69,13 @@ Assets
 │   ├── Prefabs
 │   ├── Scenes
 │   ├── Scripts
-│   ├── StateMachine
+│   │   ├── AI
+│   │   ├── Editor
+│   │   ├── Game
+│   │   ├── Gameplay
+│   │   ├── MiMultiplayer     
+│   │   ├── **StateMachine**
+│   │   └── UI
 │   └── Tutorials
 ├── NavMeshComponents
 ├── Rendering
@@ -78,6 +84,8 @@ Assets
 ├── ThirdPartyResources
 └── UI Toolkit
 ```
+
+El grueso de la implementación que concierne a esta práctica está situado en la carpeta **StateMachine**.
 
 ### Estructura del proyecto
 Dentro de FPS los recursos que conforman el proyecto están organizados de esta forma:
@@ -110,10 +118,12 @@ Para la implementación del proyecto son relevantes dos escenas:
 
 ## Diseño de la solución
 ### Estados del bot prisionero
-```mermaid
+> [!NOTE]
+> Diagrama próximamente
+<!-- ```mermaid
 graph TD;
   
-```
+``` -->
 
 Los scripts usados para la gestión de estados del agente:
 * BotGameplayActions
@@ -177,21 +187,21 @@ Detallamos a continuación la información sobre las clases y prefabs más relev
 
 ### Clases
 
-#### BotGameplayActions 🟡
+#### [BotGameplayActions](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/BotGameplayActions.cs) 🟡
 Gestor de acciones.
 
-#### FSM 🟡
+#### [FSM](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/FSM.cs) 🟡
 Gestor de máquina de estados.
 
-#### State 🟣
+#### [State](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/State.cs) 🟣
 
-#### StateMachine 🟣
+#### [StateMachine](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/StateMachine.cs) 🟣
 
-#### TransitionManager 🟣
+#### [TransitionManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/TransitionManager.cs) 🟣
 
 ### ScriptableObjects
 
-#### States 🟣
+#### [States](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/StateMachine/States.cs) 🟣
 
 ### Prefabs
 *Human_Prefab* representa al jugador humano y *UCM_Bot* es la IA que hay que programar si se quiere tener un bot contra el que enfrentarse.
@@ -222,11 +232,12 @@ Serie corta y rápida posible de pruebas a nivel offline y local que pueden real
 
 * **1 (A).** Iniciar el juego, seleccionar la opción de *Play* y a continuación *Host*. Viene configurado previamente para hacer pruebas ya que los campos no necesitan valores estrictamente funcionales para iniciar partida, pero en caso de que no fuese así:
       * Rellenar los campos, en el de Nickname cualquier nombre, en el de IP Adress configurar su IP local privada, en puerto el valor 0000 y en personaje seleccionar UCM_Bot. Seleccionar *"START GAME"*.
-* **1 (A).** Observar a través de tanto la vista del agente como alternando con el botón N a la visión de planta del nivel el mundo virtual las diferentes cámaras y el mundo virtual descrito.
-* **1 (B).** Observar a través del comportamiento del agente las acciones que puede realizar, dónde ha sido generado y dónde se genera tras morir.
-* **1 (C).** Observar el movimiento del agente a lo largo del nivel y su reaccion ante enemigos.
-* **1 (D).** Observar los cambios de estado del agente ante sus distintas circunstancias, como al percibir a un enemigo, eliminarlo y volver a la patrulla.
-* **1 (E).** Observar en la interfaz de usuario las distintas métricas tomadas en tiempo real sobre las estadísticas del agente.
+* **2 (A).** Observar a través de tanto la vista del agente como alternando con el botón N a la visión de planta del nivel el mundo virtual las diferentes cámaras y el mundo virtual descrito.
+* **3 (B).** Observar a través del comportamiento del agente las acciones que puede realizar, dónde ha sido generado y dónde se genera tras morir.
+* **4 (C).** Observar el movimiento del agente a lo largo del nivel y su reaccion ante enemigos.
+* **5 (D).** Observar los cambios de estado del agente ante sus distintas circunstancias, como al percibir a un enemigo, eliminarlo y volver a la patrulla.
+* **6 (E).** Observar en la interfaz de usuario las distintas métricas tomadas en tiempo real sobre las estadísticas del agente.
+* **7 (A, B, C, D, E).** Pulsar tecla Escape y volver a inicar la observación desde el paso 1.
 
 Las métricas que se tomarán serán:
 - Ratio de enemigos eliminados/veces que el bot ha sido eliminado
