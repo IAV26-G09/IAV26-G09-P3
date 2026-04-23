@@ -241,11 +241,42 @@ Las clases principales que se han desarrollados son las siguientes:
 ```mermaid
 classDiagram
       BotGameplayActions <|-- MonoBehaviour
-      FSM <|-- NetworkBehaviour
-      class State
-      class StateMachine
-      class StateMachineBuilder
-      class TransitionManager
+        class BotGameplayActions {
+            +m_NavMeshAgent : NavMeshAgent
+            +m_Weapons : PlayerWeaponsManager
+            +m_Health : Health
+            +m_PlayerCc : PlayerCharacterController
+            +m_LastWorldPosForAnim : Vector3
+            +m_HasLastWorldPosForAnim : bool
+        }
+
+    FSM <|-- NetworkBehaviour
+    class FSM {
+        +root : State
+        +machine : StateMachine
+        +Actions : BotGameplayActions
+    }
+
+      class State {
+        +Machine : StateMachine Machine
+        +Parent : State
+        +ActiveChild : State
+    }
+
+      class StateMachine {
+        +Root : State Root
+        +Transitions : TransitionManager
+        +Owner : FSM
+        +started : bool started
+    }
+
+      class StateMachineBuilder {
+        +root : State
+    }
+
+      class TransitionManager {
+        + Machine : StateMachine
+    }
 ```
 
 Implementación: Se adjuntan los scripts con el código fuente que implementan las principales características. Los scripts están documentados para mayor claridad y detalle sobre su implementación.
