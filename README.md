@@ -135,8 +135,23 @@ Los scripts usados para la gestión de estados del agente:
 
 Para la implementación de la máquina de estados se ha visualizado esta como un **árbol**, de tal forma que un diagrama de estados como el anterior se podría desplegar de esta forma:
 ```mermaid
-graph TD;
-  
+stateDiagram
+%%     direction LR
+    [*] --> Paseo
+      state Paseo {
+            %% direction LR
+            [*] --> Ocioso
+            Movimiento --> Ocioso: Al llegar a su destino
+            Ocioso --> Movimiento: Tras pasar algunos segundos
+      }
+      state Combate {
+            %% direction LR
+            [*] --> Perseguir
+            Disparar --> Perseguir: Al perder contacto visual
+            Perseguir --> Disparar: Al tener conctacto visual
+      }
+      Paseo --> Combate: Al tener contacto visual con el enemigo
+      Combate --> Paseo: Al perder contacto visual con el enemigo durante más de X segundos
 ```
 
 
@@ -264,7 +279,6 @@ Se han tomado las siguientes métricas:
 
 
 ## Ampliaciones
-### Posibles realizadas
 Se han pensado las siguientes posibles ampliaciones: 
 - Sistema de enfrentamiento de dos o más bots entre si de distintos tipos de IA cada uno.
 - Ampliaciones en la complejidad de la percepción:
