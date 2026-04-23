@@ -123,7 +123,6 @@ Los scripts usados para la gestión de estados del agente:
 * FSM
 * State
 * StateMachine
-* States
 * TransitionManager
 
 Para la implementación de la máquina de estados se ha visualizado esta como un **árbol** de tal forma que un diagrama de estados se podría desplegar de esta forma:
@@ -299,18 +298,53 @@ Detallamos a continuación la información sobre las clases y prefabs más relev
 ### Clases
 
 #### [BotGameplayActions](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/BotGameplayActions.cs) 🟡
-Gestor de acciones.
+Gestor de acciones disponibles a realizar por el agente a través de la lógica de sus estados con los que hacer uso del mundo virtual, como la selección y navegación por Waypoints a través de su NavMesh, gestión de armas e inventario o las variables de animaciones.
 
 #### [FSM](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/FSM.cs) 🟡
-Gestor de máquina de estados.
+Gestor de máquina de estados. MonoBehaviour desde el que se parte en el inicio de la práctica para situar en contexto a la máquina de estados en el entorno del juego, multijugador y deltaTime. Actualmente tiene definidos estados de prueba para implementar un movimiento aleatorio y parada básicos en el agente.
+
+- __TryPickRandomNavMeshPoint()__: Encuentra un punto aleatorio en la malla de navegación, usado para dárselo al agente como Waypoint hacia el que dirigirse.
 
 #### [StateMachine](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/StateMachine.cs) 🟣
+La máquina de estados implementada en esta práctica, contiene un gestor de acciones y un gestor de transiciones y a través de referencias a ellos, sus estados pueden realizar acciones y determinar transiciones.
+
+- __Start()__: Entra en la raíz de la máquina para llegar a su estado inicial predeterminado
+- __Tick()__: Método público que controla si la máquina se ha iniciado y delega el resto de lógica en InternalTick().
+- __InternalTick()__: Delega al Update() de su estado actual.
+- __ChangeState()__: Ejecuta el cambio solicitado, sale de todos los estados hasta el ancestro común y entra de vuelta hasta el estado solicitado.
+
+Contiene dentro su propio Builder:
+
+- __Build()__: Crea la máquina de estados, llama a Wire() y la devuelve creada y cableada.
+- __Wire()__: Cablea las relaciones entre los estados de la máquina de estados tras ser construida.
 
 #### [TransitionManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/TransitionManager.cs) 🟣
+Gestor de transiciones entre estados de una StateMachine a través de su parentesco.
+
+- __RequestTransition()__: Interfaz con la que llamar a la máquina de estados para cambiar a otro estado. 
+- __CommonFatherState()__: Entre dos estados, devuelve su estado padre común más cercano
 
 ### ScriptableObjects
 
 #### [State](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/State.cs) 🟣
+Clase básica para un estado que a su vez puede contener estados y abstrae la lógica al entrar, estar y salir en él. Tiene referencia a la máquina de estados general y a sus estados padre e hijos en caso de tenerlos.
+
+- __Leaf()__: Busca el nodo activo mas profundo en un arbol, la hoja del camino en el arbol que estamos siguiendo.
+- __PathToRoot()__: Devuelve el camino desde este estado a la raiz del arbol.
+- __Actions__: Devuelve el gestor de acciones disonible en el agente a través de la referencia a su máquina de estados.
+
+- __GetInitialState()__: Devuelve el estado hijo con el cual se empieza por defecto cuando se entre a este estado. Si no tiene hijos es nulo.
+- __GetTransition()__: Devuelve el estado al que transicionar si es caso. Si no hay que hacerlo, es nulo.
+
+Métodos virtuales a sobrescribir por los estados que implementen su propia lógica:
+- __OnEnter()__
+- __OnExit()__
+- __OnUpdate()__
+
+Métodos privados de la clase abstracta para gestionar el flujo de la lógica de un estado y sus hijos
+- __Enter()__
+- __Exit()__
+- __Update()__
 
 ### Prefabs
 *Human_Prefab* representa al jugador humano y *UCM_Bot* es la IA que hay que programar si se quiere tener un bot contra el que enfrentarse.
@@ -332,7 +366,7 @@ Es el "paquete completo" del jugador: control FPS, cámara, armas, vida/daño y 
 * PlayerCharacterController: Script de este proyecto que hace las veces de MENTE del CharacterController, lee la entrada con PlayerInputHandler, y lo convierte en movimiento, rotación, coordina la cámara, la animación, está pendiente de la salud, muerte, apuntado, etc.
 
 #### UCM_Bot
-En UCM_Bot encontramos componentes muy parecidos, aunque se ha añadido FSM como gestor de máquina de estados y BotGameplayActions como gestor de acciones, aunque también hace cosas como crear el componente NavMeshAgent en caso de que no lo tenga.
+En UCM_Bot encontramos componentes muy parecidos, aunque se ha añadido FSM como gestor de máquina de estados y BotGameplayActions como gestor de acciones, aunque también hace cosas como crear el componente NavMeshAgent en caso de que no lo tenga y desactivar la entrada del jugador.
 
 ## Pruebas y métricas
 ### Plan de pruebas
