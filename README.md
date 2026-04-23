@@ -147,6 +147,20 @@ stateDiagram
       Combate --> Paseo: Al perder contacto visual con el enemigo durante más de X segundos
 ``` 
 #### Diagrama de ejemplo, desplegado
+```mermaid
+stateDiagram
+    [*] --> Paseo
+      Paseo
+      Paseo --> Movimiento
+      Paseo --> Ocioso
+
+      
+      Combate
+      Disparar 
+      Paseo --> Combate
+      Combate --> Paseo
+      Combate --> Disparar
+``` 
 
 La máquina de estados, [*StateMachine*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/StateMachine.cs), almacena una referencia al nodo raíz del árbol, será el primer nodo al que se entre al iniciar la máquina y con ello el *mecanismo* empieza a funcionar. La gestión de la ejecución de esta se delega en la clase [*FSM*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/FSM.cs) la cual se hace responsable de llamar al método *Tick(deltaTime)* de la *StateMachine*.
 
