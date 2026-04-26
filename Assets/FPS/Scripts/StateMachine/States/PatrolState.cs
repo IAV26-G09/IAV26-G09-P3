@@ -18,13 +18,11 @@ namespace HSM
             var agent = Actions.NavMeshAgent;
             if (agent.hasPath && Actions.HasReachedCurrentDestination())
             {
-                Debug.Log("VOY A IDLE");
-                return ((Paseo)Parent).Idle;
+                //Debug.Log("VOY A IDLE");
+                //return ((Dead)Parent).Idle;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         protected override void OnUpdate(float deltaTime)
@@ -39,7 +37,7 @@ namespace HSM
                 return;
             }
 
-            if (!agent.hasPath)
+            if (!agent.hasPath || (agent.hasPath && Actions.HasReachedCurrentDestination()))
             {
                 if (FSM.TryPickRandomNavMeshPoint(actions.transform.position, 20f, out var dest))
                 {

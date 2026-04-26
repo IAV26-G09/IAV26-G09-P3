@@ -2,35 +2,24 @@ using UnityEngine;
 
 namespace HSM
 {
-public class BotRoot : State
-{
-    public readonly Paseo Paseo;
-    public readonly Combat Combat;
-
-    private bool combat = false;
-
-    public BotRoot(StateMachine m)
-        : base(m, null)
+    public class BotRoot : State
     {
-        Paseo = new Paseo(m, this);
-        Combat = new Combat(m, this);
-    }
+        public readonly Dead dead;
+        public readonly Alive alive;
 
-    protected override State GetInitialState() => Paseo;
-
-    protected override State GetTransition()
-    {
-        if (combat)
+        public BotRoot(StateMachine m)
+            : base(m, null)
         {
-            Debug.Log("VOY A COMBATE");
-            combat = false;
-            return Combat;
+            dead = new Dead(m, this);
+            alive = new Alive(m, this);
         }
-        else
+
+        protected override State GetInitialState() => alive;
+
+        protected override State GetTransition()
         {
             return null;
         }
     }
-}
 }
 

@@ -522,6 +522,12 @@ namespace Unity.FPS.Gameplay
                         QueryTriggerInteraction.Ignore);
                     foreach (Collider c in standingOverlaps)
                     {
+                        if (c == null)
+                            continue;
+
+                        if (c.transform.IsChildOf(transform))
+                            continue;
+
                         if (c != m_Controller)
                         {
                             return false;

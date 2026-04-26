@@ -90,7 +90,7 @@ public class FSM : NetworkBehaviour
         // El bot no debe competir con el teclado/ratón del jugador humano.
         // Pista: cuando implementéis disparo automático, podréis volver a habilitar
         // PlayerWeaponsManager desde BotGameplayActions.InitializeWeaponSystemsIfNeeded().
-        DisableHumanInputAndWeaponStack();
+        DisableHumanInput();
     }
 
     public override void OnNetworkSpawn()
@@ -112,6 +112,8 @@ public class FSM : NetworkBehaviour
 
         if (IsServer)
             StartCoroutine(ServerInitBotWhenGameplaySceneReady());
+
+        Actions.InitializeWeaponSystemsIfNeeded();
     }
 
     public override void OnNetworkDespawn()
@@ -149,6 +151,7 @@ public class FSM : NetworkBehaviour
         }
 
         m_Actions.EnsureNavMeshAgentReady();
+        m_Actions.InitializeWeaponSystemsIfNeeded();
 
         DisableHumanLocomotionThatConflictsWithNavMesh();
 
@@ -157,16 +160,19 @@ public class FSM : NetworkBehaviour
         InitializeStates();
     }
 
-    void DisableHumanInputAndWeaponStack()
+    void DisableHumanInput()
     {
         var inputHandler = GetComponent<PlayerInputHandler>();
         if (inputHandler != null)
             inputHandler.enabled = false;
+    }
 
+    void DisableWeaponStak()
+    {
         var weapons = GetComponent<PlayerWeaponsManager>();
         if (weapons != null)
             weapons.enabled = false;
-    }
+        }
 
     void DisableHumanLocomotionThatConflictsWithNavMesh()
     {

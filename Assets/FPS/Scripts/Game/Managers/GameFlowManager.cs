@@ -36,7 +36,7 @@ namespace Unity.FPS.Game
         // gestion de la camara
         // dado que la plantilla es un caos que desactiva los scripts del input del jugador y otras tantas cosas y ademas da errores en los hashes de los prefabs al iniciar la ejecucion vamos a simplificarlo por aqui
         private Camera[] m_Cameras;
-        int m_CamId = 0;
+        int m_CamId = 1;
         [SerializeField]
         private Camera topDownCamera;
 

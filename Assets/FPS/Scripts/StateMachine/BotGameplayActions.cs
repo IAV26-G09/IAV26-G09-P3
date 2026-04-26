@@ -38,7 +38,7 @@ public class BotGameplayActions : MonoBehaviour
 
     [Header("Combate (opcional)")]
     [Tooltip("Si es true, en InitializeWeaponSystemsIfNeeded se habilita PlayerWeaponsManager para que ejecute Start y cree las armas iniciales.")]
-    [SerializeField] bool m_EnableWeaponManagerForBot = false;
+    [SerializeField] bool m_EnableWeaponManagerForBot = true;
 
     NavMeshAgent m_NavMeshAgent;
     PlayerWeaponsManager m_Weapons;

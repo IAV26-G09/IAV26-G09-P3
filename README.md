@@ -186,37 +186,49 @@ Para las acciones y condiciones concretas se hace uso de la clase [*BotGameplayA
 
 ### Diseño de los estados del bot prisionero
 Se ha propuesto el siguiente diseño de máquina de estados para los comportamientos del bot prisionero, con el objetivo de maximizar la métrica principal del juego (número de enemigos que he eliminado – número de veces que he sido eliminado).
+
+```text
+BotRoot
+  ├── Dead
+  └── Active
+      ├── Recover
+      │   ├── RunAway
+      │   └── Heal
+      ├── Engage
+      │   ├── Pursue
+      │   └── Attack
+      ├── Loot
+      └── Patrol
+```
+
 ```mermaid
 stateDiagram
-    [*] --> Paseo
-      state Paseo {
-            [*] --> Movimiento
-            Movimiento --> Pertrechado: Si hay algun utensilio/arma en las inmediaciones
-            Pertrechado --> Movimiento: Tras conseguir el utensilio/arma
-      }
-      state Combate {
-            [*] --> Disparo
-            state Disparo {
-                  [*] --> Correteo
-                  Correteo
-                  state Cobertura {
-                        [*] --> Recarga: Si armas disponibles < 1
-                        [*] --> Cambio_de_arma: Si armas disponibles >= 1
-                        Recarga
-                        Cambio_de_arma
-                  }
+direction LR
+    [*] --> Alive
 
-                  Correteo --> Cobertura: Al gastar munición y haber cobertura cerca
-                  Cobertura --> Correteo: Al recargar munición
-            }
-            Persecucion
+    state Dead 
 
-            Disparo --> Persecucion: Al perder de vista al enemigo
-            Persecucion --> Disparo: Al rehacer contacto visual con el enemigo
-      }
+    state Alive {
+        [*] --> Patrol
 
-      Paseo --> Combate: Al detectar al enemigo
-      Combate --> Paseo: Al eliminar al enemigo
+        state Engage {
+            [*] --> Pursue
+            Pursue --> Attack
+            Attack --> Pursue
+        }
+
+        state Recover {
+            [*] --> RunAway
+            RunAway --> Heal
+        }
+
+        Loot
+        Patrol
+    }
+
+    Alive --> Dead
+    Dead --> Alive
+
 ``` 
 
 

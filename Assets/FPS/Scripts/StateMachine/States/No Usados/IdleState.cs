@@ -27,13 +27,10 @@ namespace HSM
             {
                 counter = 0f;
 
-                Debug.Log("VOY A PATROL");
-                return ((Paseo)Parent).Patrol;
+                //Debug.Log("VOY A PATROL");
+                //return ((Dead)Parent).Patrol;
             }
-            else
-            {
-                return null;
-            }
+            return null;
         }
 
         protected override void OnUpdate(float deltaTime)

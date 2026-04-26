@@ -2511,7 +2511,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BotGameplayActions
   m_AutoCreateNavMeshAgent: 1
   m_DefaultStoppingDistance: 1.5
-  m_EnableWeaponManagerForBot: 0
+  m_EnableWeaponManagerForBot: 1
 --- !u!1 &1788606075170186430
 GameObject:
   m_ObjectHideFlags: 0
