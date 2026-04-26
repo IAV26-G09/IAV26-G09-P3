@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
 using System.Collections.Generic;
-using HierarchicalStateMachine;
+using HSM;
 using Unity.FPS.Game;
 
 namespace Unity.FPS.Gameplay
