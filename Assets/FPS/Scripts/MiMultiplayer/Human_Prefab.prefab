@@ -2133,7 +2133,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2125763978
+  GlobalObjectIdHash: 470384359
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -2169,11 +2169,6 @@ MonoBehaviour:
   m_damageable: {fileID: 0}
   m_playerinput: {fileID: -5372112491453352032}
   m_camera: {fileID: 8648618053945363252}
-  gameplaySceneNames:
-  - MainScene
-  - PrisonScene
-  - SecondaryScene
-  scoreboardRefreshInterval: 0.25
 --- !u!114 &-8179391460120874077
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2187,8 +2182,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Unity.FPS.Gameplay.PlayerRespawner
   ShowTopMostFoldoutHeaderGroup: 1
-  m_MinHorizontalSeparationFromPlayers: 3
-  m_NavMeshSampleRadius: 4
 --- !u!114 &-5875526496074363916
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2294,9 +2287,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   NameText: {fileID: 2806047695405144488}
   NetworkedName:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
     m_InternalValue:
       utf8LengthInBytes: 0
       bytes:
@@ -2317,64 +2307,20 @@ MonoBehaviour:
           byte0013: 0
           byte0014: 0
           byte0015: 0
-        offset0016:
-          byte0000: 0
-          byte0001: 0
-          byte0002: 0
-          byte0003: 0
-          byte0004: 0
-          byte0005: 0
-          byte0006: 0
-          byte0007: 0
-          byte0008: 0
-          byte0009: 0
-          byte0010: 0
-          byte0011: 0
-          byte0012: 0
-          byte0013: 0
-          byte0014: 0
-          byte0015: 0
-        offset0032:
-          byte0000: 0
-          byte0001: 0
-          byte0002: 0
-          byte0003: 0
-          byte0004: 0
-          byte0005: 0
-          byte0006: 0
-          byte0007: 0
-          byte0008: 0
-          byte0009: 0
-          byte0010: 0
-          byte0011: 0
-          byte0012: 0
-          byte0013: 0
-          byte0014: 0
-          byte0015: 0
-        byte0048: 0
-        byte0049: 0
-        byte0050: 0
-        byte0051: 0
-        byte0052: 0
-        byte0053: 0
-        byte0054: 0
-        byte0055: 0
-        byte0056: 0
-        byte0057: 0
-        byte0058: 0
-        byte0059: 0
-        byte0060: 0
-        byte0061: 0
-  Kills:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  Deaths:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
+        byte0016: 0
+        byte0017: 0
+        byte0018: 0
+        byte0019: 0
+        byte0020: 0
+        byte0021: 0
+        byte0022: 0
+        byte0023: 0
+        byte0024: 0
+        byte0025: 0
+        byte0026: 0
+        byte0027: 0
+        byte0028: 0
+        byte0029: 0
 --- !u!1 &1788606075170186430
 GameObject:
   m_ObjectHideFlags: 0
@@ -3933,9 +3879,6 @@ MonoBehaviour:
     GripName: Grip_Left
   LeftHandIKTarget: {fileID: 8741872225624894668}
   NetworkedWeaponIndex:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
 --- !u!1 &4705400560546432333
 GameObject:
@@ -4783,7 +4726,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6319161417841453249
 Transform:
   m_ObjectHideFlags: 0
