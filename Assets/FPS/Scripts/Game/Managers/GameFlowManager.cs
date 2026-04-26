@@ -63,10 +63,13 @@ namespace Unity.FPS.Game
             DontDestroyOnLoad(gameObject);
             AudioUtility.SetMasterVolume(1);
 
-            int count = Camera.allCamerasCount;
-            m_Cameras = new Camera[count];
-            Camera.GetAllCameras(m_Cameras);
-            Debug.Log(m_Cameras.Length);
+            GameObject[] cameraObjects = GameObject.FindGameObjectsWithTag("MainCamera");
+            m_Cameras = new Camera[cameraObjects.Length];
+
+            for (int i = 0; i < cameraObjects.Length; i++)
+            {
+                m_Cameras[i] = cameraObjects[i].GetComponent<Camera>();
+            }
 
             if (topDownCamera != null)
             {
