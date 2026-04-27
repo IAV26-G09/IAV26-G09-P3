@@ -20,8 +20,6 @@ namespace HSM
 {
     public abstract class State : ScriptableObject // nodo en la maquina de estados
     {
-        public StateMachine Machine; // referencia a la maquina de estados, para que un estado pueda "pedir" transicionar
-
         [SerializeField]
         public State Parent; // referencia al nodo padre para poder volver hacia atras sobre el arbol
 
@@ -30,53 +28,45 @@ namespace HSM
         [SerializeField]
         private State _initialState = null;
 
-        public State(StateMachine machine, State parent = null) // constructora de esta clase
-        {
-            Machine = machine;
-            Parent = parent;
-        }
-
         protected virtual State GetInitialState() => _initialState; // con que estado hijo empezar cuando se entre a este estado (si es nulo soy hoja)
-        protected virtual State GetTransition() => null; // si quiero transicionar devuelve el estado al que quiero ir (si es nulo me quedo)
+        protected virtual State GetTransition(BotGameplayActions a) => null; // si quiero transicionar devuelve el estado al que quiero ir (si es nulo me quedo)
 
         // Metodos basicos de un estado
-        protected virtual void OnEnter() {}
-        protected virtual void OnExit() {}
+        protected virtual void OnEnter(BotGameplayActions a) {}
+        protected virtual void OnExit(BotGameplayActions a) {}
         protected virtual void OnUpdate(StateMachine m, float deltaTime) {}
 
-        protected BotGameplayActions Actions => Machine.Owner.Actions;
-
         // metodos internos
-        internal void Enter()
+        internal void Enter(BotGameplayActions a)
         {
             if (Parent != null)
             {
                 Parent.ActiveChild = this; // si tengo un padre yo soy su hijo
             }
 
-            OnEnter(); // entras a este estado
+            OnEnter(a); // entras a este estado
             // despues de llamar al metodo basico de entrada entro recursivamente en mi primer hijo (si tengo)
             // el OnEnter del padre SIEMPRE se llama antes de el del hijo
             State init = GetInitialState();
-            if (init != null) init.Enter();
+            if (init != null) init.Enter(a);
         }
 
-        internal void Exit()
+        internal void Exit(BotGameplayActions a)
         {
             // se sale en orden inverso al que se entra
             // el OnExit del hijo SIEMPRE se llama antes de el del padre
-            if (ActiveChild != null) ActiveChild.Exit();
+            if (ActiveChild != null) ActiveChild.Exit(a);
             ActiveChild = null;
-            OnExit();
+            OnExit(a);
         }
 
         internal void Logic(StateMachine m, float deltaTime)
         {
-            State to = GetTransition(); // ver si quiero ir a otro estados
+            State to = GetTransition(m.Owner.Actions); // ver si quiero ir a otro estados
 
             if (to != null)
             {
-                Machine.Transitions.RequestTransition(this, to); // triggerea la transicion
+                m.Transitions.RequestTransition(this, to); // triggerea la transicion
             }
 
             // si no hemos transicionado y tenemos un hijo recurre en el update

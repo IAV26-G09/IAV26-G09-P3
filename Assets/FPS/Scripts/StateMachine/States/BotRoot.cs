@@ -9,14 +9,7 @@ namespace HSM
         public readonly Dead dead;
         public readonly Alive alive;
 
-        public BotRoot(StateMachine m)
-            : base(m, null)
-        {
-            //dead = new Dead(m, this);
-            //alive = new Alive(m, this);
-        }
-
-        protected override State GetTransition()
+        protected override State GetTransition(BotGameplayActions a)
         {
             return null;
         }

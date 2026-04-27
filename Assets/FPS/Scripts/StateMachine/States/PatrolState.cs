@@ -5,19 +5,15 @@ namespace HSM
     [CreateAssetMenu(menuName = "HSM/States/Patrol")]
     public class Patrol : State
     {
-        public Patrol(StateMachine m, State parent) : base(m, parent)
-        {
-        }
-
-        protected override void OnEnter()
+        protected override void OnEnter(BotGameplayActions a)
         {
             Debug.Log("ENTRANDO A PATROL");
         }
 
-        protected override State GetTransition()
+        protected override State GetTransition(BotGameplayActions a)
         {
-            var agent = Actions.NavMeshAgent;
-            if (agent.hasPath && Actions.HasReachedCurrentDestination())
+            var agent = a.NavMeshAgent;
+            if (agent.hasPath && a.HasReachedCurrentDestination())
             {
                 //Debug.Log("VOY A IDLE");
                 //return ((Dead)Parent).Idle;
@@ -28,7 +24,7 @@ namespace HSM
 
         protected override void OnUpdate(StateMachine m, float deltaTime)
         {
-            var actions = Actions;
+            var actions = m.Owner.Actions;
             var agent = actions.NavMeshAgent;
             if (agent == null || !agent.enabled || !agent.isOnNavMesh)
             {
@@ -36,7 +32,7 @@ namespace HSM
                 return;
             }
 
-            if (!agent.hasPath || (agent.hasPath && Actions.HasReachedCurrentDestination()))
+            if (!agent.hasPath || (agent.hasPath && actions.HasReachedCurrentDestination()))
             {
                 if (FSM.TryPickRandomNavMeshPoint(actions.transform.position, 20f, out var dest))
                 {

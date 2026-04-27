@@ -25,7 +25,8 @@ namespace HSM
             Debug.Log("START STATEMACHINE");
 
             started = true;
-            Root.Enter(); // para entrar por primera vez
+
+            Root.Enter(Owner.Actions); // para entrar por primera vez
         }
 
         // pasar aqui delta time, se llamara a esto en el update de un monobehaviour
@@ -45,7 +46,7 @@ namespace HSM
             State commonFather = Transitions.CommonFatherState(from, to);
 
             // <- sale de todos los estados desde from hasta el padre comun
-            for (State s = from; s != commonFather; s = s.Parent) s.Exit();
+            for (State s = from; s != commonFather; s = s.Parent) s.Exit(Owner.Actions);
 
             // -> entra en todos los estados desde el padre comun hasta to
             var stack = new Stack<State>();
@@ -53,8 +54,7 @@ namespace HSM
 
             while (stack.Count > 0)
             {
-                stack.Peek().Machine = this; // al entrar a un estado asigna la maquina de estados
-                stack.Pop().Enter();
+                stack.Pop().Enter(Owner.Actions);
             }
         }
     }
@@ -70,8 +70,6 @@ namespace HSM
 
         public StateMachine Build()
         {
-            //Debug.Log("Building");
-
             var m = new StateMachine(root);
             Wire(root, m, new HashSet<State>());
             return m;
