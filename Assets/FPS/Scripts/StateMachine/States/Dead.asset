@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2802e4c8f80f465ca24749b0050f0c83, type: 3}
+  m_Name: Dead
+  m_EditorClassIdentifier: Assembly-CSharp::HSM.Dead
+  Parent: {fileID: 11400000, guid: e4b58bebfe43cdb41ad05f086de0a7bd, type: 2}
+  stateName: Dead
+  _initialState: {fileID: 11400000, guid: ae55d24fb603cd14c9cf92260f5fb8ac, type: 2}
+  Transitions: []
