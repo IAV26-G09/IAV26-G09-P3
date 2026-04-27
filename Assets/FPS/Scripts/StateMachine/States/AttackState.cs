@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace HSM
 {
+    [CreateAssetMenu(menuName = "HSM/States/Attack")]
     public class Attack : State
     {
         public Attack(StateMachine m, State parent) : base(m, parent)
@@ -15,6 +16,7 @@ namespace HSM
 
         protected override void OnUpdate(float deltaTime)
         {
+            Debug.Log("DISPAROOOOOOOOOOOOOOOOOOOOOOOO");
             Actions.TryFireCurrentWeaponPrimary(true, true, true);
         }
     }

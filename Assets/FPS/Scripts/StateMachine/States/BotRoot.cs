@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HSM
 {
+    [CreateAssetMenu(menuName = "HSM/States/BotRoot")]
     public class BotRoot : State
     {
         public readonly Dead dead;
@@ -10,11 +12,9 @@ namespace HSM
         public BotRoot(StateMachine m)
             : base(m, null)
         {
-            dead = new Dead(m, this);
-            alive = new Alive(m, this);
+            //dead = new Dead(m, this);
+            //alive = new Alive(m, this);
         }
-
-        protected override State GetInitialState() => alive;
 
         protected override State GetTransition()
         {

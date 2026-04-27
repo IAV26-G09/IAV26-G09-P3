@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace HSM
 {
+    [CreateAssetMenu(menuName = "HSM/States/Patrol")]
     public class Patrol : State
     {
         public Patrol(StateMachine m, State parent) : base(m, parent)

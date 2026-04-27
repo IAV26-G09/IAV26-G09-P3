@@ -2497,6 +2497,7 @@ MonoBehaviour:
   m_WanderRadius: 25
   m_RepathIntervalSeconds: 1.25
   m_LogStateTransitions: 0
+  root: {fileID: 11400000, guid: e4b58bebfe43cdb41ad05f086de0a7bd, type: 2}
 --- !u!114 &4828794809904590943
 MonoBehaviour:
   m_ObjectHideFlags: 0

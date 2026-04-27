@@ -52,7 +52,7 @@ namespace Unity.FPS.Game
             }
             else
             {
-                _instance = new GameFlowManager();
+                //_instance = new GameFlowManager();
             }
 
             EventManager.AddListener<PlayerDeathEvent>(OnPlayerDeath);

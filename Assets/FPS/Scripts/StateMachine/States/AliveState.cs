@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace HSM
 {
+    [CreateAssetMenu(menuName = "HSM/States/Alive")]
     public class Alive : State
     {
         private Patrol patrol;
@@ -11,10 +12,10 @@ namespace HSM
 
         public Alive(StateMachine m, State parent) : base(m, parent)
         {
-            patrol = new Patrol(m, this);
-            engage = new Engage(m, this);
-            recover = new Recover(m, this);
-            loot = new Loot(m, this);
+            //patrol = new Patrol(m, this);
+            //engage = new Engage(m, this);
+            //recover = new Recover(m, this);
+            //loot = new Loot(m, this);
         }
 
         protected override State GetTransition()
@@ -33,6 +34,6 @@ namespace HSM
             Debug.Log("ENTER ALIVE");
         }
 
-        protected override State GetInitialState() => engage;
+        //protected override State GetInitialState() => engage;
     }
 }

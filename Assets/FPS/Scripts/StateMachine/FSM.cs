@@ -37,21 +37,6 @@ namespace HSM
 // y cuando haya que realizar alguna acción delegar en m_Actions.
 // =================================================================================================
 
-/// <summary>
-/// Estados de alto nivel del bot (ej. Patrol, Chase, Flee…).
-/// </summary>
-//public enum BotState
-//{
-//    /// <summary>Inactivo hasta que la red y el NavMesh estén listos.</summary>
-//    Idle,
-
-//    /// <summary>Comportamiento de ejemplo: deambular por el mapa eligiendo puntos aleatorios.</summary>
-//    Wandering,
-
-//    /// <summary>Podéis usar este estado cuando CurrentHealth &lt;= 0 o cuando queráis bloquear la IA por otra razón.</summary>
-//    Dead
-//}
-
 [RequireComponent(typeof(BotGameplayActions))]
 [DisallowMultipleComponent]
 public class FSM : NetworkBehaviour
@@ -66,16 +51,15 @@ public class FSM : NetworkBehaviour
     [Header("FSM — depuración")]
     [SerializeField] bool m_LogStateTransitions;
 
-    //BotState m_State = BotState.Idle; // current state
-    //BotState m_PreviousStateForLog;
-
     float m_NextRepathTime;
 
     Health m_Health;
     BotGameplayActions m_Actions;
 
-    // 
+    // HFSM
+    [SerializeField]
     private State root;
+
     private StateMachine machine;
     private string lastPath;
 
@@ -84,7 +68,6 @@ public class FSM : NetworkBehaviour
     // ---------------------------------------------------------------------------------------------
     // Ciclo de vida red / componentes
     // ---------------------------------------------------------------------------------------------
-
     void Awake()
     {
         // El bot no debe competir con el teclado/ratón del jugador humano.
@@ -166,14 +149,12 @@ public class FSM : NetworkBehaviour
         if (inputHandler != null)
             inputHandler.enabled = false;
     }
-
     void DisableWeaponStak()
     {
         var weapons = GetComponent<PlayerWeaponsManager>();
         if (weapons != null)
             weapons.enabled = false;
-        }
-
+    }
     void DisableHumanLocomotionThatConflictsWithNavMesh()
     {
         var pcc = GetComponent<PlayerCharacterController>();
@@ -192,7 +173,6 @@ public class FSM : NetworkBehaviour
         if (cc != null)
             cc.enabled = false;
     }
-
     void DisableCameraAndAudioForNonOwner()
     {
         foreach (var cam in GetComponentsInChildren<Camera>(true))
@@ -209,27 +189,8 @@ public class FSM : NetworkBehaviour
     }
 
     // ---------------------------------------------------------------------------------------------
-    // Eventos de salud
+    // Máquina de estados — Nucleo de la IA.
     // ---------------------------------------------------------------------------------------------
-
-    //void OnBotDied()
-    //{
-    //    TransitionTo(BotState.Dead);
-    //    m_Actions.DisableNavMeshAgent();
-    //}
-
-    //void OnBotHealed(float _)
-    //{
-    //    // Tras respawn, el servidor puede volver a mover al bot.
-    //    m_Actions.EnableNavMeshAgent();
-    //    m_NextRepathTime = 0f;
-    //    TransitionTo(BotState.Wandering);
-    //}
-
-    // ---------------------------------------------------------------------------------------------
-    // Máquina de estados — Esto viene a ser núcleo de la IA, lo que tendréis que cambiar.
-    // ---------------------------------------------------------------------------------------------
-
     void Update()
     {
         if (!IsServer)
@@ -247,30 +208,10 @@ public class FSM : NetworkBehaviour
                 lastPath = path;
             }
         }
-
-            // Máquina de estados por frame (servidor).
-            // Comprueba y aplica transiciones
-            //switch (m_State)
-            //{
-            //    case BotState.Idle:
-            //        // Nada: estado transitorio si no habéis llamado aún a EnterInitialStateOnServer.
-            //        break;
-
-            //    case BotState.Wandering:
-            //        TickWanderingExample();
-            //        break;
-
-            //    case BotState.Dead:
-            //        // No mover ni decidir: PlayerRespawner gestionará el revive en servidor.
-            //        break;
-
-            //        // Aquí se podrían añadir otros estados como BotState.Chase: TickChase(); break;
-            //}
-
     }
 
     /// <summary>
-    /// Ejemplo mínimo: deambular. Es un ejemplo sencillote que deberá sustituirse por lógica más rica de una verdadera máquina de estados jerárquica.
+    /// Ejemplo mínimo: deambular.
     /// </summary>
     void TickWanderingExample()
     {
@@ -294,51 +235,9 @@ public class FSM : NetworkBehaviour
             m_Actions.TryMoveToWorldPosition(dest);
     }
 
-    /// <summary>
-    /// Punto centralizado para transiciones. Usadlo para logging y tareas de entrada/salida de estado.
-    /// </summary>
-    //void TransitionTo(BotState newState)
-    //{
-    //    if (m_State == newState)
-    //        return;
-
-    //    OnExitState(m_State);
-    //    m_PreviousStateForLog = m_State;
-    //    m_State = newState;
-    //    OnEnterState(newState);
-
-    //    if (m_LogStateTransitions)
-    //        Debug.Log($"[FSM] {name}: {m_PreviousStateForLog} -> {newState}", this);
-    //}
-
-    //void OnExitState(BotState state)
-    //{
-    //    switch (state)
-    //    {
-    //        case BotState.Wandering:
-    //            // Ej.: dejar de disparar, cancelar tweens…
-    //            break;
-    //    }
-    //}
-
-    //void OnEnterState(BotState state)
-    //{
-    //    switch (state)
-    //    {
-    //        case BotState.Wandering:
-    //            m_NextRepathTime = 0f;
-    //            break;
-
-    //        case BotState.Dead:
-    //            m_Actions.StopNavigation();
-    //            break;
-    //    }
-    //}
-
     // ---------------------------------------------------------------------------------------------
     // Utilidades NavMesh (podrían moverse a BotGameplayActions si preferís no tener nada de lógica aquí)
     // ---------------------------------------------------------------------------------------------
-
     static public bool TryPickRandomNavMeshPoint(Vector3 origin, float radius, out Vector3 result)
     {
         for (int i = 0; i < 20; i++)
@@ -358,7 +257,7 @@ public class FSM : NetworkBehaviour
 
     void InitializeStates()
     {
-        root = new BotRoot(null);
+        //root = new BotRoot(null);
         var builder = new StateMachineBuilder(root);
         machine = builder.Build();
         machine.Owner = this;
@@ -368,6 +267,6 @@ public class FSM : NetworkBehaviour
     {
         return string.Join(" > ", s.PathToRoot().AsEnumerable().Reverse().Select(n => n.GetType().Name));
     }
-    }
 
+    }
 }

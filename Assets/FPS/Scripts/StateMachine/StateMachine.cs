@@ -35,7 +35,7 @@ namespace HSM
             InternalTick(deltaTime);
         }
 
-        internal void InternalTick(float deltaTime) => Root.Update(deltaTime); // delega
+        internal void InternalTick(float deltaTime) => Root.Logic(deltaTime); // delega
 
         // ejecuta el cambio triggerado, sale de todos los estados hasta el ancestro comun y entra de vuelta hasta el estado to
         public void ChangeState(State from, State to)

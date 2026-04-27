@@ -18,11 +18,15 @@ using UnityEngine;
 
 namespace HSM
 {
-    public abstract class State // nodo en la maquina de estados
+    public abstract class State : ScriptableObject // nodo en la maquina de estados
     {
         public readonly StateMachine Machine; // referencia a la maquina de estados, para que un estado pueda "pedir" transicionar
         public readonly State Parent; // referencia al nodo padre para poder volver hacia atras sobre el arbol
-        public State ActiveChild; // nodo hijo activo debajo de este nodo (si lo hubiese)
+
+        private State ActiveChild; // nodo hijo activo debajo de este nodo (si lo hubiese)
+
+        [SerializeField]
+        private State _initialState = null;
 
         public State(StateMachine machine, State parent = null) // constructora de esta clase
         {
@@ -30,7 +34,7 @@ namespace HSM
             Parent = parent;
         }
 
-        protected virtual State GetInitialState() => null; // con que estado hijo empezar cuando se entre a este estado (si es nulo soy hoja)
+        protected virtual State GetInitialState() => _initialState; // con que estado hijo empezar cuando se entre a este estado (si es nulo soy hoja)
         protected virtual State GetTransition() => null; // si quiero transicionar devuelve el estado al que quiero ir (si es nulo me quedo)
 
         // Metodos basicos de un estado
@@ -43,7 +47,12 @@ namespace HSM
         // metodos internos
         internal void Enter()
         {
-            if (Parent != null) Parent.ActiveChild = this; // si tengo un padre yo soy su hijo
+            if (Parent != null)
+            {
+                Debug.Log("tengo parent");
+                Parent.ActiveChild = this; // si tengo un padre yo soy su hijo
+            }
+
             OnEnter(); // entras a este estado
             // despues de llamar al metodo basico de entrada entro recursivamente en mi primer hijo (si tengo)
             // el OnEnter del padre SIEMPRE se llama antes de el del hijo
@@ -60,7 +69,7 @@ namespace HSM
             OnExit();
         }
 
-        internal void Update(float deltaTime)
+        internal void Logic(float deltaTime)
         {
             State to = GetTransition(); // ver si quiero ir a otro estados
 
@@ -73,9 +82,8 @@ namespace HSM
             // si no hemos transicionado y tenemos un hijo recurre en el update
             else if (ActiveChild != null)
             {
-                //Debug.Log("NO tengo que transicionar");
-
-                ActiveChild.Update(deltaTime);
+                Debug.Log("NO tengo que transicionar");
+                ActiveChild.Logic(deltaTime);
             }
 
             OnUpdate(deltaTime); // llama al metodo basico de este estado
