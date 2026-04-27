@@ -50,7 +50,12 @@ namespace HSM
             // -> entra en todos los estados desde el padre comun hasta to
             var stack = new Stack<State>();
             for (State s = to; s != commonFather; s = s.Parent) stack.Push(s);
-            while (stack.Count > 0) stack.Pop().Enter();
+
+            while (stack.Count > 0)
+            {
+                stack.Peek().Machine = this; // al entrar a un estado asigna la maquina de estados
+                stack.Pop().Enter();
+            }
         }
     }
 

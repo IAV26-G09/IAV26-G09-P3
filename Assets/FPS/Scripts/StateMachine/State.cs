@@ -20,8 +20,10 @@ namespace HSM
 {
     public abstract class State : ScriptableObject // nodo en la maquina de estados
     {
-        public readonly StateMachine Machine; // referencia a la maquina de estados, para que un estado pueda "pedir" transicionar
-        public readonly State Parent; // referencia al nodo padre para poder volver hacia atras sobre el arbol
+        public StateMachine Machine; // referencia a la maquina de estados, para que un estado pueda "pedir" transicionar
+
+        [SerializeField]
+        public State Parent; // referencia al nodo padre para poder volver hacia atras sobre el arbol
 
         private State ActiveChild; // nodo hijo activo debajo de este nodo (si lo hubiese)
 
@@ -49,7 +51,6 @@ namespace HSM
         {
             if (Parent != null)
             {
-                Debug.Log("tengo parent");
                 Parent.ActiveChild = this; // si tengo un padre yo soy su hijo
             }
 
@@ -75,14 +76,12 @@ namespace HSM
 
             if (to != null)
             {
-                //Debug.Log("Tengo que transicionar");
                 Machine.Transitions.RequestTransition(this, to); // triggerea la transicion
             }
 
             // si no hemos transicionado y tenemos un hijo recurre en el update
             else if (ActiveChild != null)
             {
-                Debug.Log("NO tengo que transicionar");
                 ActiveChild.Logic(deltaTime);
             }
 

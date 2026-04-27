@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b06ff1cb6a5b63d4dae1fab1ba169fd8, type: 3}
   m_Name: Engage
   m_EditorClassIdentifier: Assembly-CSharp::HSM.Engage
+  Parent: {fileID: 11400000, guid: ae55d24fb603cd14c9cf92260f5fb8ac, type: 2}
   _initialState: {fileID: 11400000, guid: c4124f2f8bd35c340805e874274b7bc9, type: 2}
