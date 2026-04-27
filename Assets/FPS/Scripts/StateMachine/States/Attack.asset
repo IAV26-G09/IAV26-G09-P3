@@ -13,4 +13,6 @@ MonoBehaviour:
   m_Name: Attack
   m_EditorClassIdentifier: Assembly-CSharp::HSM.Attack
   Parent: {fileID: 11400000, guid: 5261ab575212a2a4aab8b6f12e18f361, type: 2}
+  stateName: Attack
   _initialState: {fileID: 0}
+  Transitions: []

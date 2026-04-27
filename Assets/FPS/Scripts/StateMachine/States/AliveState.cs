@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace HSM
 {
-    [CreateAssetMenu(menuName = "HSM/States/Alive")]
+    [CreateAssetMenu(menuName = "HSM/States/Alive", fileName = "Alive")]
     public class Alive : State
     {
         protected override State GetTransition(BotGameplayActions a)

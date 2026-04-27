@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HSM
 {
-    [CreateAssetMenu(menuName = "HSM/States/BotRoot")]
+    [CreateAssetMenu(menuName = "HSM/States/BotRoot", fileName = "BotRoot")]
     public class BotRoot : State
     {
         public readonly Dead dead;

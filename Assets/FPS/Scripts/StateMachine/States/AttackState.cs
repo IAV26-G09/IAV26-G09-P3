@@ -1,14 +1,17 @@
+using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 namespace HSM
 {
-    [CreateAssetMenu(menuName = "HSM/States/Attack")]
+    [CreateAssetMenu(menuName = "HSM/States/Attack", fileName = "Attack")]
     public class Attack : State
     {
         protected override void OnEnter(BotGameplayActions a)
         {
             Debug.Log("ENTER ATTACK");
         }
+
 
         protected override void OnUpdate(StateMachine m, float deltaTime)
         {

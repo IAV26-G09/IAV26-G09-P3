@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace HSM
 {
-    [CreateAssetMenu(menuName = "HSM/States/Patrol")]
+    [CreateAssetMenu(menuName = "HSM/States/Patrol", fileName = "Patrol")]
     public class Patrol : State
     {
         protected override void OnEnter(BotGameplayActions a)

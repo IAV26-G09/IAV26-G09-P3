@@ -26,10 +26,18 @@ namespace HSM
         private State ActiveChild; // nodo hijo activo debajo de este nodo (si lo hubiese)
 
         [SerializeField]
+        protected string stateName; 
+
+        [SerializeField]
         private State _initialState = null;
+
+        [SerializeField] 
+        private List<State> Transitions;
 
         protected virtual State GetInitialState() => _initialState; // con que estado hijo empezar cuando se entre a este estado (si es nulo soy hoja)
         protected virtual State GetTransition(BotGameplayActions a) => null; // si quiero transicionar devuelve el estado al que quiero ir (si es nulo me quedo)
+        // Para buscar en la lista de transiciones, ej:
+        // State e = Transitions.Find(x => x.stateName.Contains("LootState"));
 
         // Metodos basicos de un estado
         protected virtual void OnEnter(BotGameplayActions a) {}

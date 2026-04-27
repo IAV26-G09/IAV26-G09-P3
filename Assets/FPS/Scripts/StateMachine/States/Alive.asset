@@ -13,4 +13,6 @@ MonoBehaviour:
   m_Name: Alive
   m_EditorClassIdentifier: Assembly-CSharp::HSM.Alive
   Parent: {fileID: 11400000, guid: e4b58bebfe43cdb41ad05f086de0a7bd, type: 2}
+  stateName: Alive
   _initialState: {fileID: 11400000, guid: 5261ab575212a2a4aab8b6f12e18f361, type: 2}
+  Transitions: []

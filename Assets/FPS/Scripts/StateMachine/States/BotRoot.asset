@@ -12,4 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc12cb582a63c724c8175508051513d4, type: 3}
   m_Name: BotRoot
   m_EditorClassIdentifier: Assembly-CSharp::HSM.BotRoot
+  Parent: {fileID: 0}
+  stateName: BotRoot
   _initialState: {fileID: 11400000, guid: ae55d24fb603cd14c9cf92260f5fb8ac, type: 2}
+  Transitions: []
