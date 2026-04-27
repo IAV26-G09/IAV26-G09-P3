@@ -26,10 +26,8 @@ namespace HSM
             return null;
         }
 
-        protected override void OnUpdate(float deltaTime)
+        protected override void OnUpdate(StateMachine m, float deltaTime)
         {
-            base.OnUpdate(deltaTime);
-
             var actions = Actions;
             var agent = actions.NavMeshAgent;
             if (agent == null || !agent.enabled || !agent.isOnNavMesh)

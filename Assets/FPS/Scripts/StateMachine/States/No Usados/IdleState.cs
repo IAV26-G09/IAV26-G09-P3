@@ -33,7 +33,7 @@ namespace HSM
             return null;
         }
 
-        protected override void OnUpdate(float deltaTime)
+        protected override void OnUpdate(StateMachine m, float deltaTime)
         {
             counter += deltaTime;
         }

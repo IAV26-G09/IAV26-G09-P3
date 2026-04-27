@@ -14,10 +14,10 @@ namespace HSM
             Debug.Log("ENTER ATTACK");
         }
 
-        protected override void OnUpdate(float deltaTime)
+        protected override void OnUpdate(StateMachine m, float deltaTime)
         {
             Debug.Log("DISPAROOOOOOOOOOOOOOOOOOOOOOOO");
-            Actions.TryFireCurrentWeaponPrimary(true, true, true);
+            m.Owner.Actions.TryFireCurrentWeaponPrimary(true, true, true);
         }
     }
 }

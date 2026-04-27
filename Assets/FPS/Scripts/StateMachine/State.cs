@@ -42,7 +42,7 @@ namespace HSM
         // Metodos basicos de un estado
         protected virtual void OnEnter() {}
         protected virtual void OnExit() {}
-        protected virtual void OnUpdate(float deltaTime) {}
+        protected virtual void OnUpdate(StateMachine m, float deltaTime) {}
 
         protected BotGameplayActions Actions => Machine.Owner.Actions;
 
@@ -70,7 +70,7 @@ namespace HSM
             OnExit();
         }
 
-        internal void Logic(float deltaTime)
+        internal void Logic(StateMachine m, float deltaTime)
         {
             State to = GetTransition(); // ver si quiero ir a otro estados
 
@@ -82,10 +82,10 @@ namespace HSM
             // si no hemos transicionado y tenemos un hijo recurre en el update
             else if (ActiveChild != null)
             {
-                ActiveChild.Logic(deltaTime);
+                ActiveChild.Logic(m, deltaTime);
             }
 
-            OnUpdate(deltaTime); // llama al metodo basico de este estado
+            OnUpdate(m, deltaTime); // llama al metodo basico de este estado
         }
 
         public State Leaf() // busca el nodo activo mas profundo en un arbol, la hoja del camino en el arbol que estamos siguiendo
