@@ -66,20 +66,12 @@ public class FSM : MonoBehaviour
     // ---------------------------------------------------------------------------------------------
     void Awake()
     {
-        DisableHumanInput();
         m_Actions = GetComponent<BotGameplayActions>();
     }
 
     private void Start()
     {
         InitializeStates();
-    }
-
-    void DisableHumanInput()
-    {
-        var inputHandler = GetComponent<PlayerInputHandler>();
-        if (inputHandler != null)
-            inputHandler.enabled = false;
     }
 
     // ---------------------------------------------------------------------------------------------
