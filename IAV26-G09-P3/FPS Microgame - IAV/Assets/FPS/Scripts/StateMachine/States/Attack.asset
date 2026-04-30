@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6c6ba3332fc12b4d97f714a94eb65c3, type: 3}
+  m_Name: Attack
+  m_EditorClassIdentifier: Assembly-CSharp::HSM.Attack
+  Parent: {fileID: 11400000, guid: 5261ab575212a2a4aab8b6f12e18f361, type: 2}
+  stateName: Attack
+  _initialState: {fileID: 0}
+  Transitions:
+  - {fileID: 11400000, guid: c7099abcb40644f46884fc1f41e7b8c4, type: 2}
