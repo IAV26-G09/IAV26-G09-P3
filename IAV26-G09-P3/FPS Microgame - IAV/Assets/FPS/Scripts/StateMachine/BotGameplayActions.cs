@@ -19,13 +19,6 @@ using UnityEngine.AI;
 /// <see cref="InitializeWeaponSystemsIfNeeded"/>). ¡Ojo, sin armas inicializadas, los métodos de combate
 /// no tendrán efecto!
 /// </para>
-/// <para>
-/// <b>Movimiento:</b> hoy el bot se desplaza en servidor con <see cref="NavMeshAgent"/> (autoridad de
-/// transform en red para bots). Los métodos de navegación de esta clase encapsulan ese camino.
-/// Si en el futuro queréis controlar al personaje igual que un humano (<see cref="CharacterController"/>),
-/// tendréis que inyectar "input sintético" (ampliando <see cref="PlayerInputHandler"/>) o duplicar
-/// parte de la física 
-/// </para>
 /// </summary>
 [DisallowMultipleComponent]
 public class BotGameplayActions : MonoBehaviour

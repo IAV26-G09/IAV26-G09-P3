@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Linq;
 using Unity.FPS.Game;
@@ -5,6 +6,7 @@ using Unity.FPS.Gameplay;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.LowLevel;
+using Random = UnityEngine.Random;
 
 /*
  * Se trata como un arbol:
@@ -26,12 +28,7 @@ namespace HSM
 //   • Separar "qué decide la IA" (esta clase) de "cómo se ejecutan las acciones en el juego"
 //     (ver BotGameplayActions).
 //
-// Red (NGO) — Aclaraciones:
-//   • La lógica de este bot corre en el SERVIDOR (IsServer). Los clientes solo ven el resultado
-//     replicado (NetworkTransform server-authoritative en bots).
-//   • No hay que activar cámaras ni AudioListener en instancias que no sean del jugador local.
-//
-// Vuestra tarea es escribir código aquí de una verdadera máquina de estados jerárquica, :
+// Vuestra tarea es escribir código aquí de una verdadera máquina de estados jerárquica:
 // que cargue la información de estados, transiciones, condiciones (según salud, según distancia a enemigos, etc.)
 // y cuando haya que realizar alguna acción delegar en m_Actions.
 // =================================================================================================
@@ -69,80 +66,12 @@ public class FSM : MonoBehaviour
     // ---------------------------------------------------------------------------------------------
     void Awake()
     {
-        // El bot no debe competir con el teclado/ratón del jugador humano.
-        // Pista: cuando implementéis disparo automático, podréis volver a habilitar
-        // PlayerWeaponsManager desde BotGameplayActions.InitializeWeaponSystemsIfNeeded().
         DisableHumanInput();
+        m_Actions = GetComponent<BotGameplayActions>();
     }
 
-        /*
-
-    public override void OnNetworkSpawn()
+    private void Start()
     {
-        //base.OnNetworkSpawn();
-
-        m_Actions = GetComponent<BotGameplayActions>();
-        m_Health = GetComponent<Health>();
-
-        if (m_Health != null)
-        {
-            //m_Health.OnDie += OnBotDied;
-            //m_Health.OnHealed += OnBotHealed;
-        }
-
-        // Cámaras y listeners solo en el owner (en bots suele ser irrelevante, pero evita conflictos de tipo MPPM).
-        if (!IsOwner)
-            DisableCameraAndAudioForNonOwner();
-
-        if (IsServer)
-            StartCoroutine(ServerInitBotWhenGameplaySceneReady());
-
-            Actions.InitializeWeaponSystemsIfNeeded();
-        }
-
-        public override void OnNetworkDespawn()
-        {
-            StopAllCoroutines();
-
-            if (m_Health != null)
-            {
-                //m_Health.OnDie -= OnBotDied;
-                //m_Health.OnHealed -= OnBotHealed;
-            }
-
-            base.OnNetworkDespawn();
-        }
-
-        */
-
-        /// <summary>
-        /// El host spawnea el player object en cuanto arranca la red; la escena de juego (NavMesh, ActorsManager)
-        /// carga justo después. Esperamos a que existan antes de crear el NavMeshAgent.
-        /// </summary>
-        IEnumerator ServerInitBotWhenGameplaySceneReady()
-    {
-        const float timeoutSeconds = 45f;
-        float elapsed = 0f;
-
-        while (elapsed < timeoutSeconds)
-        {
-            bool navReady = BotGameplayActions.SceneHasNavMeshData();
-            bool actorsReady = Object.FindFirstObjectByType<ActorsManager>() != null;
-
-            if (navReady && actorsReady)
-                break;
-
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        m_Actions.EnsureNavMeshAgentReady();
-        m_Actions.InitializeWeaponSystemsIfNeeded();
-
-        DisableHumanLocomotionThatConflictsWithNavMesh();
-
-        //TransitionTo(BotState.Wandering);
-
         InitializeStates();
     }
 
@@ -151,44 +80,6 @@ public class FSM : MonoBehaviour
         var inputHandler = GetComponent<PlayerInputHandler>();
         if (inputHandler != null)
             inputHandler.enabled = false;
-    }
-    void DisableWeaponStak()
-    {
-        var weapons = GetComponent<PlayerWeaponsManager>();
-        if (weapons != null)
-            weapons.enabled = false;
-    }
-    void DisableHumanLocomotionThatConflictsWithNavMesh()
-    {
-        var pcc = GetComponent<PlayerCharacterController>();
-        if (pcc != null)
-            pcc.enabled = false;
-
-        var jetpack = GetComponent<Jetpack>();
-        if (jetpack != null)
-            jetpack.enabled = false;
-
-        var playerInput = GetComponent<UnityEngine.InputSystem.PlayerInput>();
-        if (playerInput != null)
-            playerInput.enabled = false;
-
-        var cc = GetComponent<CharacterController>();
-        if (cc != null)
-            cc.enabled = false;
-    }
-    void DisableCameraAndAudioForNonOwner()
-    {
-        foreach (var cam in GetComponentsInChildren<Camera>(true))
-            cam.enabled = false;
-
-        foreach (var listener in GetComponentsInChildren<AudioListener>(true))
-            listener.enabled = false;
-
-        foreach (var cam in GetComponentsInChildren<Camera>(true))
-        {
-            if (cam != null && cam.gameObject != null)
-                cam.gameObject.SetActive(false);
-        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -204,35 +95,11 @@ public class FSM : MonoBehaviour
 
             if (path != lastPath)
             {
-                //Debug.Log(path);
+                if(m_LogStateTransitions) Debug.Log(path);
+
                 lastPath = path;
             }
         }
-    }
-
-    /// <summary>
-    /// Ejemplo mínimo: deambular.
-    /// </summary>
-    void TickWanderingExample()
-    {
-        if (m_Health != null && m_Health.CurrentHealth <= 0f)
-            return;
-
-        var agent = m_Actions.NavMeshAgent;
-        if (agent == null || !agent.enabled || !agent.isOnNavMesh)
-            return;
-
-        if (Time.time < m_NextRepathTime)
-            return;
-
-        m_NextRepathTime = Time.time + Mathf.Max(0.1f, m_RepathIntervalSeconds);
-
-        bool needsNewTarget = !agent.hasPath || agent.pathPending || m_Actions.HasReachedCurrentDestination();
-        if (!needsNewTarget)
-            return;
-
-        if (TryPickRandomNavMeshPoint(transform.position, Mathf.Max(2f, m_WanderRadius), out var dest))
-            m_Actions.TryMoveToWorldPosition(dest);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -257,7 +124,6 @@ public class FSM : MonoBehaviour
 
     void InitializeStates()
     {
-        //root = new BotRoot(null);
         var builder = new StateMachineBuilder(root);
         machine = builder.Build();
         machine.Owner = this;
