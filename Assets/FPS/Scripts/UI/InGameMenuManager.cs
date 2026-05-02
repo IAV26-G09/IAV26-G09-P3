@@ -41,14 +41,14 @@ namespace Unity.FPS.UI
 
         void Start()
         {
-            m_PlayerInputsHandler = FindFirstObjectByType<PlayerInputHandler>();
+            m_PlayerInputsHandler = FindAnyObjectByType<PlayerInputHandler>();
             DebugUtility.HandleErrorIfNullFindObject<PlayerInputHandler, InGameMenuManager>(m_PlayerInputsHandler,
                 this);
 
             m_PlayerHealth = m_PlayerInputsHandler.GetComponent<Health>();
             DebugUtility.HandleErrorIfNullGetComponent<Health, InGameMenuManager>(m_PlayerHealth, this, gameObject);
 
-            m_FramerateCounter = FindFirstObjectByType<FramerateCounter>();
+            m_FramerateCounter = FindAnyObjectByType<FramerateCounter>();
             DebugUtility.HandleErrorIfNullFindObject<FramerateCounter, InGameMenuManager>(m_FramerateCounter, this);
 
             MenuRoot.SetActive(false);

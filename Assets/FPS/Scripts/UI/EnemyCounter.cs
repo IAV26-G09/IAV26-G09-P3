@@ -14,7 +14,7 @@ namespace Unity.FPS.UI
 
         void Awake()
         {
-            m_EnemyManager = FindFirstObjectByType<EnemyManager>();
+            m_EnemyManager = FindAnyObjectByType<EnemyManager>();
             DebugUtility.HandleErrorIfNullFindObject<EnemyManager, EnemyCounter>(m_EnemyManager, this);
         }
 

@@ -12,7 +12,6 @@ namespace HSM
             Debug.Log("ENTER ATTACK");
         }
 
-
         protected override void OnUpdate(StateMachine m, float deltaTime)
         {
             m.Owner.Actions.TryFireCurrentWeaponPrimary(true, true, true);

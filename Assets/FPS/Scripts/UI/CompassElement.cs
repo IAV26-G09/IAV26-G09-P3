@@ -15,13 +15,8 @@ namespace Unity.FPS.UI
 
         void Awake()
         {
-            m_Compass = FindFirstObjectByType<Compass>();
-            if (m_Compass == null)
-            {
-                // En escenas sin HUD/Compass (p.ej. algunas escenas multijugador), evitamos NRE y nos desactivamos.
-                enabled = false;
-                return;
-            }
+            m_Compass = FindAnyObjectByType<Compass>();
+            DebugUtility.HandleErrorIfNullFindObject<Compass, CompassElement>(m_Compass, this);
 
             var markerInstance = Instantiate(CompassMarkerPrefab);
 
@@ -31,8 +26,7 @@ namespace Unity.FPS.UI
 
         void OnDestroy()
         {
-            if (m_Compass != null)
-                m_Compass.UnregisterCompassElement(transform);
+            m_Compass.UnregisterCompassElement(transform);
         }
     }
 }

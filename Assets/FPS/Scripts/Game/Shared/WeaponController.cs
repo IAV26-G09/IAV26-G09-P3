@@ -9,11 +9,10 @@ namespace Unity.FPS.Game
     {
         Manual,
         Automatic,
-        Burst,
         Charge,
     }
 
-    [System.Serializable]
+    [Serializable]
     public struct CrosshairData
     {
         [Tooltip("The image that will be used for this weapon's crosshair")]
@@ -29,11 +28,6 @@ namespace Unity.FPS.Game
     [RequireComponent(typeof(AudioSource))]
     public class WeaponController : MonoBehaviour
     {
-        public enum MouseButton
-        {
-            Left,
-            Right,
-        }
         [Header("Information")] [Tooltip("The name that will be displayed in the UI for this weapon")]
         public string WeaponName;
 
@@ -53,33 +47,13 @@ namespace Unity.FPS.Game
         [Tooltip("Tip of the weapon, where the projectiles are shot")]
         public Transform WeaponMuzzle;
 
-        [Header("Second Weapon (Dual)")]
-        [Tooltip("Enable support for a second weapon (dual setup) handled by this controller")] 
-        public bool SecondWeaponEnabled = false;
-
-        [Tooltip("Root object for the second weapon")] 
-        public GameObject SecondWeaponRoot;
-
-        [Tooltip("Tip of the second weapon, where projectiles are shot")] 
-        public Transform SecondWeaponMuzzle;
-
         [Header("Shoot Parameters")] [Tooltip("The type of weapon wil affect how it shoots")]
         public WeaponShootType ShootType;
 
         [Tooltip("The projectile prefab")] public ProjectileBase ProjectilePrefab;
-        [Tooltip("If set, spawns this prefab once while fire is held, parented to the muzzle (e.g., flamethrower emitter)")]
-        public ProjectileBase HeldEmitterPrefab;
-        [Tooltip("Use a single emitter while holding fire instead of spawning projectiles each shot")] 
-        public bool UseHeldEmitter = false;
 
         [Tooltip("Minimum duration between two shots")]
         public float DelayBetweenShots = 0.5f;
-
-        [Tooltip("Number of shots per burst (Burst mode only)")]
-        public int BurstCount = 3;
-
-        [Tooltip("Delay between shots in a burst (Burst mode only)")]
-        public float BurstShotInterval = 0.08f;
 
         [Tooltip("Angle for the cone in which the bullets will be shot randomly (0 means no spread at all)")]
         public float BulletSpreadAngle = 0f;
@@ -155,34 +129,13 @@ namespace Unity.FPS.Game
         public AudioClip ContinuousShootEndSfx;
         AudioSource m_ContinuousShootAudioSource = null;
         bool m_WantsToShoot = false;
-        ProjectileBase m_ActiveHeldEmitter = null;
-
-        [Header("Input Overrides")]
-        [Tooltip("Enable per-weapon custom mouse button for firing (default is Left click)")]
-        public bool UseCustomFireButtonOverride = false;
-
-        [Tooltip("Mouse button to use when the override is enabled")]
-        public MouseButton FireMouseButton = MouseButton.Left;
-
-        [Tooltip("Enable custom mouse button for firing the second weapon")] 
-        public bool UseCustomFireButtonOverrideSecondary = false;
-
-        [Tooltip("Mouse button used to fire the second weapon when override is enabled")] 
-        public MouseButton FireMouseButtonSecondary = MouseButton.Right;
-
-        [Tooltip("Disable aiming down sights for this weapon")] 
-        public bool DisableADSForThisWeapon = false;
-
-        Transform m_CurrentMuzzleOverride;
 
         public UnityAction OnShoot;
         public event Action OnShootProcessed;
 
         int m_CarriedPhysicalBullets;
         float m_CurrentAmmo;
-        float m_LastTimeShot = Mathf.NegativeInfinity; // keeps global last shot (for cooling/reload)
-        float m_LastTimeShotPrimary = Mathf.NegativeInfinity;
-        float m_LastTimeShotSecondary = Mathf.NegativeInfinity;
+        float m_LastTimeShot = Mathf.NegativeInfinity;
         public float LastChargeTriggerTimestamp { get; private set; }
         Vector3 m_LastMuzzlePosition;
 
@@ -203,8 +156,6 @@ namespace Unity.FPS.Game
         public int GetCurrentAmmo() => Mathf.FloorToInt(m_CurrentAmmo);
 
         AudioSource m_ShootAudioSource;
-        Renderer[] m_WeaponRenderers;
-        Dictionary<Renderer, bool> m_InitialRendererEnabled;
 
         public bool IsReloading { get; private set; }
 
@@ -221,21 +172,6 @@ namespace Unity.FPS.Game
             m_ShootAudioSource = GetComponent<AudioSource>();
             DebugUtility.HandleErrorIfNullGetComponent<AudioSource, WeaponController>(m_ShootAudioSource, this,
                 gameObject);
-
-            // Cache all renderers under this weapon instance and remember their initial enabled state
-            m_WeaponRenderers = GetComponentsInChildren<Renderer>(true);
-            m_InitialRendererEnabled = new Dictionary<Renderer, bool>(m_WeaponRenderers != null ? m_WeaponRenderers.Length : 0);
-            if (m_WeaponRenderers != null)
-            {
-                for (int i = 0; i < m_WeaponRenderers.Length; i++)
-                {
-                    var r = m_WeaponRenderers[i];
-                    if (r != null && !m_InitialRendererEnabled.ContainsKey(r))
-                    {
-                        m_InitialRendererEnabled.Add(r, r.enabled);
-                    }
-                }
-            }
 
             if (UseContinuousShootSound)
             {
@@ -303,24 +239,6 @@ namespace Unity.FPS.Game
             UpdateAmmo();
             UpdateCharge();
             UpdateContinuousShootSound();
-
-            // Burst logic: process pending burst shots
-            if (ShootType == WeaponShootType.Burst && m_BurstActive && m_BurstShotsRemaining > 0 && Time.time >= m_NextBurstShotTime)
-            {
-                if (TryShoot())
-                {
-                    m_BurstShotsRemaining--;
-                    m_NextBurstShotTime = Time.time + BurstShotInterval;
-                }
-                else
-                {
-                    m_BurstShotsRemaining = 0;
-                }
-                if (m_BurstShotsRemaining <= 0)
-                {
-                    m_BurstActive = false;
-                }
-            }
 
             if (Time.deltaTime > 0)
             {
@@ -415,37 +333,6 @@ namespace Unity.FPS.Game
         public void ShowWeapon(bool show)
         {
             WeaponRoot.SetActive(show);
-            if (SecondWeaponEnabled && SecondWeaponRoot != null)
-            {
-                SecondWeaponRoot.SetActive(show);
-            }
-
-            // Toggle only the weapon's renderers. On show, restore initial states; on hide, disable.
-            if (m_WeaponRenderers != null)
-            {
-                if (show)
-                {
-                    for (int i = 0; i < m_WeaponRenderers.Length; i++)
-                    {
-                        var r = m_WeaponRenderers[i];
-                        if (r != null && m_InitialRendererEnabled != null && m_InitialRendererEnabled.TryGetValue(r, out bool initial))
-                        {
-                            r.enabled = initial;
-                        }
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < m_WeaponRenderers.Length; i++)
-                    {
-                        var r = m_WeaponRenderers[i];
-                        if (r != null)
-                        {
-                            r.enabled = false;
-                        }
-                    }
-                }
-            }
 
             if (show && ChangeWeaponSfx)
             {
@@ -463,10 +350,6 @@ namespace Unity.FPS.Game
             m_LastTimeShot = Time.time;
         }
 
-        int m_BurstShotsRemaining = 0;
-        float m_NextBurstShotTime = 0f;
-        bool m_BurstActive = false;
-
         public bool HandleShootInputs(bool inputDown, bool inputHeld, bool inputUp)
         {
             m_WantsToShoot = inputDown || inputHeld;
@@ -477,62 +360,16 @@ namespace Unity.FPS.Game
                     {
                         return TryShoot();
                     }
+
                     return false;
 
                 case WeaponShootType.Automatic:
-                    if (UseHeldEmitter)
+                    if (inputHeld)
                     {
-                        // ...existing code...
-                        if (inputHeld && m_ActiveHeldEmitter == null && m_LastTimeShot + DelayBetweenShots < Time.time)
-                        {
-                            if (HeldEmitterPrefab)
-                            {
-                                var emitter = Instantiate(HeldEmitterPrefab, WeaponMuzzle.position, WeaponMuzzle.rotation, WeaponMuzzle);
-                                emitter.Shoot(this);
-                                m_ActiveHeldEmitter = emitter;
-                                m_LastTimeShot = Time.time;
-                            }
-                        }
-
-                        if (inputUp && m_ActiveHeldEmitter)
-                        {
-                            Destroy(m_ActiveHeldEmitter.gameObject);
-                            m_ActiveHeldEmitter = null;
-                        }
-
-                        return false;
-                    }
-                    else
-                    {
-                        if (inputHeld)
-                        {
-                            return TryShoot();
-                        }
-                        return false;
+                        return TryShoot();
                     }
 
-                case WeaponShootType.Burst:
-                    // Start burst on inputDown if not already bursting
-                    if (inputDown && !m_BurstActive && m_CurrentAmmo >= 1f && GetLastShotTimeForCurrentMuzzle() + DelayBetweenShots < Time.time)
-                    {
-                        m_BurstShotsRemaining = BurstCount;
-                        m_NextBurstShotTime = Time.time;
-                        m_BurstActive = true;
-                        // Fire first shot immediately
-                        if (TryShoot())
-                        {
-                            m_BurstShotsRemaining--;
-                            m_NextBurstShotTime = Time.time + BurstShotInterval;
-                        }
-                        else
-                        {
-                            m_BurstShotsRemaining = 0;
-                            m_BurstActive = false;
-                        }
-                        return true;
-                    }
-                    // Return true if a burst is in progress
-                    return m_BurstActive;
+                    return false;
 
                 case WeaponShootType.Charge:
                     if (inputHeld)
@@ -553,40 +390,10 @@ namespace Unity.FPS.Game
             }
         }
 
-        // Allow driving shooting logic using a specific muzzle (primary or secondary)
-        public bool HandleShootInputsForMuzzle(Transform muzzle, bool inputDown, bool inputHeld, bool inputUp)
-        {
-            var previous = m_CurrentMuzzleOverride;
-            m_CurrentMuzzleOverride = muzzle;
-            bool result = HandleShootInputs(inputDown, inputHeld, inputUp);
-            m_CurrentMuzzleOverride = previous;
-            return result;
-        }
-
-        float GetLastShotTimeForCurrentMuzzle()
-        {
-            var muzzle = m_CurrentMuzzleOverride;
-            if (muzzle == null || muzzle == WeaponMuzzle)
-                return m_LastTimeShotPrimary;
-            if (SecondWeaponEnabled && muzzle == SecondWeaponMuzzle)
-                return m_LastTimeShotSecondary;
-            return m_LastTimeShotPrimary;
-        }
-
-        void SetLastShotTimeForCurrentMuzzle(float time)
-        {
-            var muzzle = m_CurrentMuzzleOverride;
-            if (muzzle == null || muzzle == WeaponMuzzle)
-                m_LastTimeShotPrimary = time;
-            else if (SecondWeaponEnabled && muzzle == SecondWeaponMuzzle)
-                m_LastTimeShotSecondary = time;
-        }
-
         bool TryShoot()
         {
-            float lastShotForMuzzle = GetLastShotTimeForCurrentMuzzle();
             if (m_CurrentAmmo >= 1f
-                && lastShotForMuzzle + DelayBetweenShots < Time.time)
+                && m_LastTimeShot + DelayBetweenShots < Time.time)
             {
                 HandleShoot();
                 m_CurrentAmmo -= 1f;
@@ -639,9 +446,8 @@ namespace Unity.FPS.Game
             // spawn all bullets with random direction
             for (int i = 0; i < bulletsPerShotFinal; i++)
             {
-                Transform muzzle = m_CurrentMuzzleOverride != null ? m_CurrentMuzzleOverride : WeaponMuzzle;
-                Vector3 shotDirection = GetShotDirectionWithinSpread(muzzle);
-                ProjectileBase newProjectile = Instantiate(ProjectilePrefab, muzzle.position,
+                Vector3 shotDirection = GetShotDirectionWithinSpread(WeaponMuzzle);
+                ProjectileBase newProjectile = Instantiate(ProjectilePrefab, WeaponMuzzle.position,
                     Quaternion.LookRotation(shotDirection));
                 newProjectile.Shoot(this);
             }
@@ -649,9 +455,8 @@ namespace Unity.FPS.Game
             // muzzle flash
             if (MuzzleFlashPrefab != null)
             {
-                Transform muzzle = m_CurrentMuzzleOverride != null ? m_CurrentMuzzleOverride : WeaponMuzzle;
-                GameObject muzzleFlashInstance = Instantiate(MuzzleFlashPrefab, muzzle.position,
-                    muzzle.rotation, muzzle.transform);
+                GameObject muzzleFlashInstance = Instantiate(MuzzleFlashPrefab, WeaponMuzzle.position,
+                    WeaponMuzzle.rotation, WeaponMuzzle.transform);
                 // Unparent the muzzleFlashInstance
                 if (UnparentMuzzleFlash)
                 {
@@ -667,9 +472,6 @@ namespace Unity.FPS.Game
                 m_CarriedPhysicalBullets--;
             }
 
-            // update per-muzzle last shot timestamp
-            SetLastShotTimeForCurrentMuzzle(Time.time);
-            // also update global last shot for cooling/reload logic
             m_LastTimeShot = Time.time;
 
             // play shoot SFX

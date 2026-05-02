@@ -13,41 +13,26 @@ namespace Unity.FPS.Game
         public Transform AimPoint;
 
         ActorsManager m_ActorsManager;
-        bool m_RegisteredWithManager;
 
         void Start()
         {
-            TryRegisterWithActorsManager();
-        }
+            m_ActorsManager = FindAnyObjectByType<ActorsManager>();
+            DebugUtility.HandleErrorIfNullFindObject<ActorsManager, Actor>(m_ActorsManager, this);
 
-        void Update()
-        {
-            if (m_RegisteredWithManager)
-                return;
-
-            // Multijugador: el jugador puede spawnear antes de que cargue la escena de juego (menú → PrisonScene).
-            TryRegisterWithActorsManager();
-        }
-
-        void TryRegisterWithActorsManager()
-        {
-            if (m_RegisteredWithManager)
-                return;
-
-            m_ActorsManager = GameObject.FindFirstObjectByType<ActorsManager>();
-            if (m_ActorsManager == null)
-                return;
-
+            // Register as an actor
             if (!m_ActorsManager.Actors.Contains(this))
+            {
                 m_ActorsManager.Actors.Add(this);
-
-            m_RegisteredWithManager = true;
+            }
         }
 
         void OnDestroy()
         {
-            if (m_ActorsManager != null && m_ActorsManager.Actors.Contains(this))
+            // Unregister as an actor
+            if (m_ActorsManager)
+            {
                 m_ActorsManager.Actors.Remove(this);
+            }
         }
     }
 }

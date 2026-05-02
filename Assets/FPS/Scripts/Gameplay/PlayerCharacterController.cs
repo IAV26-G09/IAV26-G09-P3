@@ -7,18 +7,13 @@ namespace Unity.FPS.Gameplay
     [RequireComponent(typeof(CharacterController), typeof(PlayerInputHandler), typeof(AudioSource))]
     public class PlayerCharacterController : MonoBehaviour
     {
-        [Header("References")]
-        [Tooltip("Reference to the main camera used for the player")]
+        [Header("References")] [Tooltip("Reference to the main camera used for the player")]
         public Camera PlayerCamera;
 
         [Tooltip("Audio source for footsteps, jump, etc...")]
         public AudioSource AudioSource;
 
-        [Tooltip("Animator component from the Mixamo character model")]
-        public Animator CharacterAnimator;
-
-        [Header("General")]
-        [Tooltip("Force applied downward when in the air")]
+        [Header("General")] [Tooltip("Force applied downward when in the air")]
         public float GravityDownForce = 20f;
 
         [Tooltip("Physic layers checked to consider the player grounded")]
@@ -27,15 +22,14 @@ namespace Unity.FPS.Gameplay
         [Tooltip("distance from the bottom of the character controller capsule to test for grounded")]
         public float GroundCheckDistance = 0.05f;
 
-        [Header("Movement")]
-        [Tooltip("Max movement speed when grounded (when not sprinting)")]
+        [Header("Movement")] [Tooltip("Max movement speed when grounded (when not sprinting)")]
         public float MaxSpeedOnGround = 10f;
 
-        [Tooltip("Sharpness for the movement when grounded, a low value will make the player accelerate and decelerate slowly, a high value will do the opposite")]
+        [Tooltip(
+            "Sharpness for the movement when grounded, a low value will make the player accelerate and decelerate slowly, a high value will do the opposite")]
         public float MovementSharpnessOnGround = 15;
 
-        [Tooltip("Max movement speed when crouching")]
-        [Range(0, 1)]
+        [Tooltip("Max movement speed when crouching")] [Range(0, 1)]
         public float MaxSpeedCrouchedRatio = 0.5f;
 
         [Tooltip("Max movement speed when not grounded")]
@@ -50,20 +44,16 @@ namespace Unity.FPS.Gameplay
         [Tooltip("Height at which the player dies instantly when falling off the map")]
         public float KillHeight = -50f;
 
-        [Header("Rotation")]
-        [Tooltip("Rotation speed for moving the camera")]
+        [Header("Rotation")] [Tooltip("Rotation speed for moving the camera")]
         public float RotationSpeed = 200f;
 
-        [Range(0.1f, 1f)]
-        [Tooltip("Rotation speed multiplier when aiming")]
+        [Range(0.1f, 1f)] [Tooltip("Rotation speed multiplier when aiming")]
         public float AimingRotationMultiplier = 0.4f;
 
-        [Header("Jump")]
-        [Tooltip("Force applied upward when jumping")]
+        [Header("Jump")] [Tooltip("Force applied upward when jumping")]
         public float JumpForce = 9f;
 
-        [Header("Stance")]
-        [Tooltip("Ratio (0-1) of the character height where the camera will be at")]
+        [Header("Stance")] [Tooltip("Ratio (0-1) of the character height where the camera will be at")]
         public float CameraHeightRatio = 0.9f;
 
         [Tooltip("Height of character when standing")]
@@ -75,8 +65,7 @@ namespace Unity.FPS.Gameplay
         [Tooltip("Speed of crouching transitions")]
         public float CrouchingSharpness = 10f;
 
-        [Header("Audio")]
-        [Tooltip("Amount of footstep sounds played when moving one meter")]
+        [Header("Audio")] [Tooltip("Amount of footstep sounds played when moving one meter")]
         public float FootstepSfxFrequency = 1f;
 
         [Tooltip("Amount of footstep sounds played when moving one meter while sprinting")]
@@ -146,7 +135,7 @@ namespace Unity.FPS.Gameplay
 
         void Awake()
         {
-            ActorsManager actorsManager = FindFirstObjectByType<ActorsManager>();
+            ActorsManager actorsManager = FindAnyObjectByType<ActorsManager>();
             if (actorsManager != null)
                 actorsManager.SetPlayer(gameObject);
         }
@@ -189,14 +178,6 @@ namespace Unity.FPS.Gameplay
                 m_Health.Kill();
             }
 
-            // Si estamos muertos, no procesamos movimiento ni físicas de jugador.
-            // Mantenemos la actualización del animator para que se vea la animación de muerte.
-            if (IsDead)
-            {
-                UpdateAnimator();
-                return;
-            }
-
             HasJumpedThisFrame = false;
 
             bool wasGrounded = IsGrounded;
@@ -230,67 +211,19 @@ namespace Unity.FPS.Gameplay
                 SetCrouchingState(!IsCrouching, false);
             }
 
-            if (m_InputHandler.GetChangeViewButtonRelease())
-            {
-                //ChangeCameraView();
-            }
-
             UpdateCharacterHeight(false);
 
             HandleCharacterMovement();
-
-            // LÓGICA DE ACTUALIZACIÓN DEL ANIMATOR ---
-            UpdateAnimator();
-        }
-
-        // Método dedicado a enviar datos al Animator
-        void UpdateAnimator()
-        {
-            if (CharacterAnimator == null) return;
-
-            // 1. Convertimos la velocidad global del mundo a velocidad local (relativa a donde mira el jugador)
-            Vector3 localVelocity = transform.InverseTransformDirection(CharacterVelocity);
-
-            // 2. Normalizamos la velocidad para tener valores entre -1 y 1 (que son los que lee nuestro Blend Tree)
-            float forwardSpeed = localVelocity.z / MaxSpeedOnGround;
-            float strafeSpeed = localVelocity.x / MaxSpeedOnGround;
-
-            // 3. Enviamos los datos suavizados (dampTime de 0.1f) para evitar tirones
-            CharacterAnimator.SetFloat("Forward", forwardSpeed, 0.1f, Time.deltaTime);
-            CharacterAnimator.SetFloat("Strafe", strafeSpeed, 0.1f, Time.deltaTime);
-
-            // 4. Salto / Caída
-            CharacterAnimator.SetBool("IsGrounded", IsGrounded);
-
-            // 5. Apuntar (UpperBodyMask)
-            if (m_WeaponsManager != null)
-            {
-                CharacterAnimator.SetBool("IsAiming", m_WeaponsManager.IsAiming);
-            }
         }
 
         void OnDie()
         {
             IsDead = true;
-            CharacterAnimator.SetBool("IsDead", IsDead);
 
             // Tell the weapons manager to switch to a non-existing weapon in order to lower the weapon
             m_WeaponsManager.SwitchToWeaponIndex(-1, true);
 
             EventManager.Broadcast(Events.PlayerDeathEvent);
-        }
-
-        public void OnRespawn()
-        {
-            IsDead = false;
-            CharacterAnimator.SetBool("IsDead", IsDead);
-            CharacterVelocity = Vector3.zero; // Frenamos en seco por si morimos cayendo
-
-            // Le decimos al WeaponsManager que vuelva a sacar el arma (la que estaba en el índice 0)
-            if (m_WeaponsManager != null)
-            {
-                m_WeaponsManager.SwitchToWeaponIndex(0, true);
-            }
         }
 
         void GroundCheck()
@@ -522,12 +455,6 @@ namespace Unity.FPS.Gameplay
                         QueryTriggerInteraction.Ignore);
                     foreach (Collider c in standingOverlaps)
                     {
-                        if (c == null)
-                            continue;
-
-                        if (c.transform.IsChildOf(transform))
-                            continue;
-
                         if (c != m_Controller)
                         {
                             return false;
@@ -545,14 +472,6 @@ namespace Unity.FPS.Gameplay
 
             IsCrouching = crouched;
             return true;
-        }
-
-        void ChangeCameraView()
-        {
-            if (GameFlowManager.Instance != null)
-            {
-                GameFlowManager.Instance.CycleCamera();
-            }
         }
     }
 }

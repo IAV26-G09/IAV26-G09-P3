@@ -48,7 +48,7 @@ namespace Unity.FPS.UI
         void Start()
         {
             // Subscribe to player damage events
-            PlayerCharacterController playerCharacterController = FindFirstObjectByType<PlayerCharacterController>();
+            PlayerCharacterController playerCharacterController = FindAnyObjectByType<PlayerCharacterController>();
             DebugUtility.HandleErrorIfNullFindObject<PlayerCharacterController, FeedbackFlashHUD>(
                 playerCharacterController, this);
 
@@ -56,7 +56,7 @@ namespace Unity.FPS.UI
             DebugUtility.HandleErrorIfNullGetComponent<Health, FeedbackFlashHUD>(m_PlayerHealth, this,
                 playerCharacterController.gameObject);
 
-            m_GameFlowManager = FindFirstObjectByType<GameFlowManager>();
+            m_GameFlowManager = FindAnyObjectByType<GameFlowManager>();
             DebugUtility.HandleErrorIfNullFindObject<GameFlowManager, FeedbackFlashHUD>(m_GameFlowManager, this);
 
             m_PlayerHealth.OnDamaged += OnTakeDamage;

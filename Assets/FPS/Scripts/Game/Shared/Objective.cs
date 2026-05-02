@@ -5,10 +5,6 @@ namespace Unity.FPS.Game
 {
     public abstract class Objective : MonoBehaviour
     {
-        // Global switch: si se desactiva, no se crean/asignan objetivos ni se muestran en UI.
-        // Para este proyecto queremos partidas infinitas, así que lo dejamos apagado por defecto.
-        public static bool ObjectivesEnabled = false;
-
         [Tooltip("Name of the objective that will be shown on screen")]
         public string Title;
 
@@ -29,9 +25,6 @@ namespace Unity.FPS.Game
 
         protected virtual void Start()
         {
-            if (!ObjectivesEnabled)
-                return;
-
             OnObjectiveCreated?.Invoke(this);
 
             DisplayMessageEvent displayMessage = Events.DisplayMessageEvent;
@@ -42,9 +35,6 @@ namespace Unity.FPS.Game
 
         public void UpdateObjective(string descriptionText, string counterText, string notificationText)
         {
-            if (!ObjectivesEnabled)
-                return;
-
             ObjectiveUpdateEvent evt = Events.ObjectiveUpdateEvent;
             evt.Objective = this;
             evt.DescriptionText = descriptionText;
@@ -56,9 +46,6 @@ namespace Unity.FPS.Game
 
         public void CompleteObjective(string descriptionText, string counterText, string notificationText)
         {
-            if (!ObjectivesEnabled)
-                return;
-
             IsCompleted = true;
 
             ObjectiveUpdateEvent evt = Events.ObjectiveUpdateEvent;

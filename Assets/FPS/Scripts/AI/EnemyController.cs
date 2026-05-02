@@ -84,10 +84,6 @@ namespace Unity.FPS.AI
         [Tooltip("Color of the sphere gizmo representing the detection range")]
         public Color DetectionRangeColor = Color.blue;
 
-        [Header("Multiplayer / score")]
-        [Tooltip("Si está desactivado, matar este enemigo no suma kill en el marcador (p. ej. torreta, hoverbot).")]
-        [SerializeField] bool m_AwardKillCreditToLastDamager = true;
-
         public UnityAction onAttack;
         public UnityAction onDetectedTarget;
         public UnityAction onLostTarget;
@@ -96,7 +92,6 @@ namespace Unity.FPS.AI
         List<RendererIndexData> m_BodyRenderers = new List<RendererIndexData>();
         MaterialPropertyBlock m_BodyFlashMaterialPropertyBlock;
         float m_LastTimeDamaged = float.NegativeInfinity;
-        GameObject m_LastDamageSource;
 
         RendererIndexData m_EyeRendererData;
         MaterialPropertyBlock m_EyeColorMaterialPropertyBlock;
@@ -348,8 +343,6 @@ namespace Unity.FPS.AI
             // test if the damage source is the player
             if (damageSource && !damageSource.GetComponent<EnemyController>())
             {
-                m_LastDamageSource = damageSource;
-
                 // pursue the player
                 DetectionModule.OnDamaged(damageSource);
                 
@@ -370,21 +363,6 @@ namespace Unity.FPS.AI
             var vfx = Instantiate(DeathVfx, DeathVfxSpawnPoint.position, Quaternion.identity);
             Destroy(vfx, 5f);
 
-            // Contabilizamos la kill SOLO en el host/servidor.
-            // Importante: este archivo vive en el asmdef `fps.AI`, que no referencia Netcode ni scripts de MiMultiplayer.
-            // Por eso evitamos dependencias directas y usamos reflexión + SendMessage.
-            if (IsNetcodeServer() && m_AwardKillCreditToLastDamager)
-            {
-                if (m_LastDamageSource != null)
-                {
-                    var killerRoot = m_LastDamageSource.transform.root;
-                    if (killerRoot != null)
-                    {
-                        killerRoot.gameObject.SendMessage("AddKillServer", SendMessageOptions.DontRequireReceiver);
-                    }
-                }
-            }
-
             // tells the game flow manager to handle the enemy destuction
             m_EnemyManager.UnregisterEnemy(this);
 
@@ -393,8 +371,6 @@ namespace Unity.FPS.AI
             {
                 Instantiate(LootPrefab, transform.position, Quaternion.identity);
             }
-
-            GetComponent<EnemyLocalRespawn>()?.OnEnemyDiedScheduleLocalRespawn();
 
             // this will call the OnDestroy function
             Destroy(gameObject, DeathDuration);
@@ -416,22 +392,6 @@ namespace Unity.FPS.AI
                 Gizmos.color = AttackRangeColor;
                 Gizmos.DrawWireSphere(transform.position, DetectionModule.AttackRange);
             }
-        }
-
-        static bool IsNetcodeServer()
-        {
-            // Unity.Netcode.NetworkManager.Singleton.IsServer (sin referencia de ensamblado)
-            var nmType = System.Type.GetType("Unity.Netcode.NetworkManager, Unity.Netcode.Runtime");
-            if (nmType == null) return true; // offline/sin netcode: contamos en local
-
-            var singletonProp = nmType.GetProperty("Singleton", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-            var singleton = singletonProp?.GetValue(null);
-            if (singleton == null) return false;
-
-            var isServerProp = nmType.GetProperty("IsServer", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-            if (isServerProp == null) return false;
-
-            return (bool)isServerProp.GetValue(singleton);
         }
 
         public void OrientWeaponsTowards(Vector3 lookPosition)

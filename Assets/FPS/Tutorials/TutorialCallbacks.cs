@@ -24,7 +24,7 @@ namespace Unity.Tutorials
         {
             if (!navMeshSurface)
             {
-                navMeshSurface = FindFirstObjectByType<NavMeshSurface>();
+                navMeshSurface = FindAnyObjectByType<NavMeshSurface>();
             }
             
             NavMesh.RemoveAllNavMeshData();

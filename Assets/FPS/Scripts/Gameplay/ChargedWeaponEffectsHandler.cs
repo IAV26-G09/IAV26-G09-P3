@@ -79,59 +79,47 @@ namespace Unity.FPS.Gameplay
             m_AudioSourceLoop.loop = true;
             m_AudioSourceLoop.outputAudioMixerGroup =
                 AudioUtility.GetAudioGroup(AudioUtility.AudioGroups.WeaponChargeLoop);
-
-            // Always fetch WeaponController so audio can work without particles
-            m_WeaponController = GetComponent<WeaponController>();
-            DebugUtility.HandleErrorIfNullGetComponent<WeaponController, ChargedWeaponEffectsHandler>(
-                m_WeaponController, this, gameObject);
         }
 
         void SpawnParticleSystem()
         {
-            if (DiskOrbitParticlePrefab == null)
-                return;
-
             ParticleInstance = Instantiate(DiskOrbitParticlePrefab,
                 ParentTransform != null ? ParentTransform : transform);
             ParticleInstance.transform.localPosition += Offset;
 
-            // Particles are optional; safely fetch modules
+            FindReferences();
+        }
+
+        public void FindReferences()
+        {
             m_DiskOrbitParticle = ParticleInstance.GetComponent<ParticleSystem>();
             DebugUtility.HandleErrorIfNullGetComponent<ParticleSystem, ChargedWeaponEffectsHandler>(m_DiskOrbitParticle,
                 this, ParticleInstance.gameObject);
+
+            m_WeaponController = GetComponent<WeaponController>();
+            DebugUtility.HandleErrorIfNullGetComponent<WeaponController, ChargedWeaponEffectsHandler>(
+                m_WeaponController, this, gameObject);
+
             m_VelocityOverTimeModule = m_DiskOrbitParticle.velocityOverLifetime;
         }
 
-        public void FindReferences() { /* kept for backward compatibility; no-op now */ }
-
         void Update()
         {
-            if (ParticleInstance == null && DiskOrbitParticlePrefab != null)
+            if (ParticleInstance == null)
                 SpawnParticleSystem();
 
-            // Drive visuals only if available; audio should work regardless
-            if (m_DiskOrbitParticle != null)
-            {
-                m_DiskOrbitParticle.gameObject.SetActive(m_WeaponController.IsWeaponActive);
-            }
+            m_DiskOrbitParticle.gameObject.SetActive(m_WeaponController.IsWeaponActive);
+            m_ChargeRatio = m_WeaponController.CurrentCharge;
 
-            m_ChargeRatio = m_WeaponController != null ? m_WeaponController.CurrentCharge : 0f;
-
-            if (ChargingObject != null)
-            {
-                ChargingObject.transform.localScale = Scale.GetValueFromRatio(m_ChargeRatio);
-            }
+            ChargingObject.transform.localScale = Scale.GetValueFromRatio(m_ChargeRatio);
             if (SpinningFrame != null)
             {
                 SpinningFrame.transform.localRotation *= Quaternion.Euler(0,
                     SpinningSpeed.GetValueFromRatio(m_ChargeRatio) * Time.deltaTime, 0);
             }
 
-            if (m_DiskOrbitParticle != null)
-            {
-                m_VelocityOverTimeModule.orbitalY = OrbitY.GetValueFromRatio(m_ChargeRatio);
-                m_DiskOrbitParticle.transform.localScale = Radius.GetValueFromRatio(m_ChargeRatio * 1.1f);
-            }
+            m_VelocityOverTimeModule.orbitalY = OrbitY.GetValueFromRatio(m_ChargeRatio);
+            m_DiskOrbitParticle.transform.localScale = Radius.GetValueFromRatio(m_ChargeRatio * 1.1f);
 
             // update sound's volume and pitch 
             if (m_ChargeRatio > 0)
@@ -142,18 +130,8 @@ namespace Unity.FPS.Gameplay
                     m_LastChargeTriggerTimestamp = m_WeaponController.LastChargeTriggerTimestamp;
                     if (!UseProceduralPitchOnLoopSfx)
                     {
-                        if (ChargeSound)
-                        {
-                            m_EndchargeTime = Time.time + ChargeSound.length;
-                            m_AudioSource.clip = ChargeSound;
-                            m_AudioSource.Play();
-                        }
-                        else
-                        {
-                            // No intro clip assigned; start loop immediately with full volume
-                            m_EndchargeTime = Time.time;
-                            m_AudioSource.volume = 0f;
-                        }
+                        m_EndchargeTime = Time.time + ChargeSound.length;
+                        m_AudioSource.Play();
                     }
 
                     m_AudioSourceLoop.Play();

@@ -80,7 +80,7 @@ namespace Unity.FPS.UI
 
         void OnDestroy()
         {
-            EventManager.RemoveListener<ObjectiveUpdateEvent>(OnUpdateObjective);
+            EventManager.AddListener<ObjectiveUpdateEvent>(OnUpdateObjective);
 
             Objective.OnObjectiveCreated -= RegisterObjective;
             Objective.OnObjectiveCompleted -= UnregisterObjective;

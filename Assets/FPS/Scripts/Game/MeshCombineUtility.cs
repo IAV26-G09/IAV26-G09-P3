@@ -139,7 +139,7 @@ namespace Unity.FPS.Game
                 RenderBatchData rbd = renderBatches[i];
 
                 Mesh newMesh = new Mesh();
-                newMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+                newMesh.indexFormat = IndexFormat.UInt32;
                 CombineInstance[] combineInstances = new CombineInstance[rbd.MeshesWithTrs.Count];
 
                 for (int j = 0; j < rbd.MeshesWithTrs.Count; j++)

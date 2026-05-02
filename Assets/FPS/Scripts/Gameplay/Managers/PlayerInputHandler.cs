@@ -1,675 +1,301 @@
 ﻿using Unity.FPS.Game;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Reflection;
-
-
 
 namespace Unity.FPS.Gameplay
-
 {
-
     public class PlayerInputHandler : MonoBehaviour
-
     {
-
         [Tooltip("Sensitivity multiplier for moving the camera around")]
-
         public float LookSensitivity = 1f;
 
-
-
         [Tooltip("Additional sensitivity multiplier for WebGL")]
-
         public float WebglLookSensitivityMultiplier = 0.25f;
 
-
-
         [Tooltip("Limit to consider an input when using a trigger on a controller")]
-
         public float TriggerAxisThreshold = 0.4f;
 
-
-
         [Tooltip("Used to flip the vertical input axis")]
-
         public bool InvertYAxis = false;
 
-
-
         [Tooltip("Used to flip the horizontal input axis")]
-
         public bool InvertXAxis = false;
 
-
-
         GameFlowManager m_GameFlowManager;
-
         PlayerCharacterController m_PlayerCharacterController;
-
         bool m_FireInputWasHeld;
 
-        bool m_LeftMouseWasHeld;
-
-        bool m_RightMouseWasHeld;
-
-
-
         private InputAction m_MoveAction;
-
         private InputAction m_LookAction;
-
         private InputAction m_JumpAction;
-
         private InputAction m_FireAction;
-
         private InputAction m_AimAction;
-
         private InputAction m_SprintAction;
-
         private InputAction m_CrouchAction;
-
         private InputAction m_ReloadAction;
-
         private InputAction m_NextWeaponAction;
+        private InputAction m_ChangeCameraAction;
 
-        private InputAction m_changeViewAction;
-
+        [SerializeField]
+        private bool botMode;
 
         void Start()
-
         {
-            // En multiplayer (Netcode), solo el jugador local (owner) debe procesar input/cursor.
-            // Si esta instancia NO es owner, nos desactivamos para no interferir con el input global.
-            if (IsNetcodeOwnerPresentAndNotOwner(gameObject))
-            {
-                enabled = false;
-                return;
-            }
-
             m_PlayerCharacterController = GetComponent<PlayerCharacterController>();
-
-            // En algunos prefabs (p.ej. armas sueltas) este componente puede acabar añadido por error.
-            // Si no hay PlayerCharacterController, nos desactivamos sin spamear errores.
-            if (m_PlayerCharacterController == null)
-            {
-                enabled = false;
-                return;
-            }
-
-            m_GameFlowManager = FindFirstObjectByType<GameFlowManager>();
-
+            DebugUtility.HandleErrorIfNullGetComponent<PlayerCharacterController, PlayerInputHandler>(
+                m_PlayerCharacterController, this, gameObject);
+            m_GameFlowManager = FindAnyObjectByType<GameFlowManager>();
             DebugUtility.HandleErrorIfNullFindObject<GameFlowManager, PlayerInputHandler>(m_GameFlowManager, this);
 
-
-
             Cursor.lockState = CursorLockMode.Locked;
-
             Cursor.visible = false;
 
-
-
             m_MoveAction = InputSystem.actions.FindAction("Player/Move");
-
             m_LookAction = InputSystem.actions.FindAction("Player/Look");
-
             m_JumpAction = InputSystem.actions.FindAction("Player/Jump");
-
             m_FireAction = InputSystem.actions.FindAction("Player/Fire");
-
             m_AimAction = InputSystem.actions.FindAction("Player/Aim");
-
             m_SprintAction = InputSystem.actions.FindAction("Player/Sprint");
-
             m_CrouchAction = InputSystem.actions.FindAction("Player/Crouch");
-
             m_ReloadAction = InputSystem.actions.FindAction("Player/Reload");
-
             m_NextWeaponAction = InputSystem.actions.FindAction("Player/NextWeapon");
-
-            m_changeViewAction = InputSystem.actions.FindAction("Player/ChangeView");
+            m_ChangeCameraAction = InputSystem.actions.FindAction("Player/ChangeCamera");
             
-            
-            // Las acciones pueden no existir según el mapa de InputActions cargado (MPPM, escenas parciales, etc.).
-            // Habilitamos solo las que existan para evitar NullReference.
-            m_MoveAction?.Enable();
-            m_LookAction?.Enable();
-            m_JumpAction?.Enable();
-            m_FireAction?.Enable();
-            m_AimAction?.Enable();
-            m_SprintAction?.Enable();
-            m_CrouchAction?.Enable();
-            m_ReloadAction?.Enable();
-            m_NextWeaponAction?.Enable();
-            m_changeViewAction?.Enable();
-
+            if (!botMode)
+            {
+                m_MoveAction.Enable();
+                m_LookAction.Enable();
+                m_JumpAction.Enable();
+                m_FireAction.Enable();
+                m_AimAction.Enable();
+                m_SprintAction.Enable();
+                m_CrouchAction.Enable();
+                m_ReloadAction.Enable();
+                m_NextWeaponAction.Enable();
+                m_ChangeCameraAction.Enable();
+            }
+            else
+            {
+                m_MoveAction.Disable();
+                m_LookAction.Disable();
+                m_JumpAction.Disable();
+                m_FireAction.Disable();
+                m_AimAction.Disable();
+                m_SprintAction.Disable();
+                m_CrouchAction.Disable();
+                m_ReloadAction.Disable();
+                m_NextWeaponAction.Disable();
+                m_ChangeCameraAction.Disable();
+            }
         }
-
-
 
         void LateUpdate()
-
         {
-
             m_FireInputWasHeld = GetFireInputHeld();
-
-            m_LeftMouseWasHeld = GetMouseLeftHeld();
-
-            m_RightMouseWasHeld = GetMouseRightHeld();
-
         }
-
-
 
         public bool CanProcessInput()
-
         {
-            // Si el jugador está muerto, no debería poder moverse/disparar durante la animación de muerte.
-            bool isDead = m_PlayerCharacterController != null && m_PlayerCharacterController.IsDead;
-
-            // En algunas escenas/modos (MPPM, bootstrap parcial) el GameFlowManager puede no existir todavía.
-            // No debemos tirar NullReference: si no existe, asumimos que la partida no está "ending".
-            bool gameIsEnding = m_GameFlowManager != null && m_GameFlowManager.GameIsEnding;
-
-            return Cursor.lockState == CursorLockMode.Locked
-                   && !gameIsEnding
-                   && !isDead;
-
+            return Cursor.lockState == CursorLockMode.Locked && !m_GameFlowManager.GameIsEnding;
         }
-
-
 
         public Vector3 GetMoveInput()
-
         {
-
             if (CanProcessInput())
-
             {
-
-                if (m_MoveAction == null) return Vector3.zero;
                 var input = m_MoveAction.ReadValue<Vector2>();
-
                 Vector3 move = new Vector3(input.x, 0f, input.y);
 
-
-
                 // constrain move input to a maximum magnitude of 1, otherwise diagonal movement might exceed the max move speed defined
-
                 move = Vector3.ClampMagnitude(move, 1);
 
-
-
                 return move;
-
             }
-
-
 
             return Vector3.zero;
-
         }
-
-
 
         public float GetLookInputsHorizontal()
-
         {
-
             if (!CanProcessInput())
-
                 return 0.0f;
-
             
-
-            if (m_LookAction == null) return 0.0f;
             float input = m_LookAction.ReadValue<Vector2>().x;
 
-
-
             if (InvertXAxis)
-
                 input *= -1;
 
-
-
             input *= LookSensitivity;
-
             
-
 #if UNITY_WEBGL
-
             // Mouse tends to be even more sensitive in WebGL due to mouse acceleration, so reduce it even more
-
             input *= WebglLookSensitivityMultiplier;
-
 #endif
 
-
-
             return input;
-
         }
-
-
 
         public float GetLookInputsVertical()
-
         {
-
             if (!CanProcessInput())
-
                 return 0.0f;
-
             
-
-            if (m_LookAction == null) return 0.0f;
             float input = m_LookAction.ReadValue<Vector2>().y;
 
-
-
             if (InvertYAxis)
-
                 input *= -1;
 
-
-
             input *= LookSensitivity;
-
             
-
 #if UNITY_WEBGL
-
             // Mouse tends to be even more sensitive in WebGL due to mouse acceleration, so reduce it even more
-
             input *= WebglLookSensitivityMultiplier;
-
 #endif
 
-
-
             return input;
-
         }
-
-
 
         public bool GetJumpInputDown()
-
         {
-
             if (CanProcessInput())
-
             {
-
-                return m_JumpAction != null && m_JumpAction.WasPressedThisFrame();
-
+                return m_JumpAction.WasPressedThisFrame();
             }
 
-
-
             return false;
-
         }
-
-
 
         public bool GetJumpInputHeld()
-
         {
-
             if (CanProcessInput())
-
             {
-
-                return m_JumpAction != null && m_JumpAction.IsPressed();
-
+                return m_JumpAction.IsPressed();
             }
 
-
-
             return false;
-
         }
-
-
 
         public bool GetFireInputDown()
-
         {
-
             return GetFireInputHeld() && !m_FireInputWasHeld;
-
         }
-
-
 
         public bool GetFireInputReleased()
-
         {
-
             return !GetFireInputHeld() && m_FireInputWasHeld;
-
         }
-
-
 
         public bool GetFireInputHeld()
-
         {
-
             if (CanProcessInput())
-
             {
-
-                return m_FireAction != null && m_FireAction.IsPressed();
-
-            }
-
-
-
-            return false;
-
-        }
-
-
-
-        // Raw mouse button helpers for per-weapon overrides
-
-        public bool GetMouseLeftDown()
-
-        {
-
-            return GetMouseLeftHeld() && !m_LeftMouseWasHeld;
-
-        }
-
-
-
-        public bool GetMouseLeftReleased()
-
-        {
-
-            return !GetMouseLeftHeld() && m_LeftMouseWasHeld;
-
-        }
-
-
-
-        public bool GetMouseLeftHeld()
-
-        {
-
-            if (CanProcessInput())
-
-            {
-
-                return Mouse.current != null && Mouse.current.leftButton.isPressed;
-
+                return m_FireAction.IsPressed();
             }
 
             return false;
-
         }
-
-
-
-        public bool GetMouseRightDown()
-
-        {
-
-            return GetMouseRightHeld() && !m_RightMouseWasHeld;
-
-        }
-
-
-
-        public bool GetMouseRightReleased()
-
-        {
-
-            return !GetMouseRightHeld() && m_RightMouseWasHeld;
-
-        }
-
-
-
-        public bool GetMouseRightHeld()
-
-        {
-
-            if (CanProcessInput())
-
-            {
-
-                return Mouse.current != null && Mouse.current.rightButton.isPressed;
-
-            }
-
-            return false;
-
-        }
-
-
 
         public bool GetAimInputHeld()
-
         {
-
             if (CanProcessInput())
-
             {
-
-                // En algunos modos/escenas el action puede no estar inicializado (o el InputSystem no tener ese mapa).
-                // No debemos tirar NullReference: si no hay acción, simplemente no hay input.
-                return m_AimAction != null && m_AimAction.IsPressed();
-
+                return m_AimAction.IsPressed();
             }
 
-
-
             return false;
-
         }
-
-
 
         public bool GetSprintInputHeld()
-
         {
-
             if (CanProcessInput())
-
             {
-
-                return m_SprintAction != null && m_SprintAction.IsPressed();
-
+                return m_SprintAction.IsPressed();
             }
 
-
-
             return false;
-
         }
-
-
 
         public bool GetCrouchInputDown()
-
         {
-
             if (CanProcessInput())
-
             {
-
-                return m_CrouchAction != null && m_CrouchAction.WasPressedThisFrame();
-
+                return m_CrouchAction.WasPressedThisFrame();
             }
 
-
-
             return false;
-
         }
-
-
 
         public bool GetCrouchInputReleased()
-
         {
-
             if (CanProcessInput())
-
             {
-
-                return m_CrouchAction != null && m_CrouchAction.WasReleasedThisFrame();
-
+                return m_CrouchAction.WasReleasedThisFrame();
             }
 
-
-
             return false;
-
         }
-
-
 
         public bool GetReloadButtonDown()
-
         {
-
             if (CanProcessInput())
-
             {
-
-                return m_ReloadAction != null && m_ReloadAction.WasPressedThisFrame();
-
+                return m_ReloadAction.WasPressedThisFrame();
             }
 
-
-
             return false;
-
         }
-
-
 
         public int GetSwitchWeaponInput()
-
         {
-
             if (CanProcessInput())
-
             {
-
-                if (m_NextWeaponAction == null) return 0;
                 var input = m_NextWeaponAction.ReadValue<float>();
 
-
-
                 if (input > 0f)
-
                     return -1;
-
                 
-
                 if (input < 0f)
-
                     return 1;
-
             }
 
-
-
             return 0;
-
         }
-
-
 
         public int GetSelectWeaponInput()
-
         {
-
             if (CanProcessInput())
-
             {
-
-                if (Keyboard.current == null) return 0;
-
                 if (Keyboard.current.digit1Key.wasPressedThisFrame)
-
                     return 1;
-
                 if (Keyboard.current.digit2Key.wasPressedThisFrame)
-
                     return 2;
-
                 if (Keyboard.current.digit3Key.wasPressedThisFrame)
-
                     return 3;
-
                 if (Keyboard.current.digit4Key.wasPressedThisFrame)
-
                     return 4;
-
                 if (Keyboard.current.digit5Key.wasPressedThisFrame)
-
                     return 5;
-
                 if (Keyboard.current.digit6Key.wasPressedThisFrame)
-
                     return 6;
-
                 if (Keyboard.current.digit7Key.wasPressedThisFrame)
-
                     return 7;
-
                 if (Keyboard.current.digit8Key.wasPressedThisFrame)
-
                     return 8;
-
                 if (Keyboard.current.digit9Key.wasPressedThisFrame)
-
                     return 9;
-
             }
-
-
 
             return 0;
-
         }
 
-        public bool GetChangeViewButtonRelease()
+        public bool GetChangeCameraDown()
         {
             if (CanProcessInput())
             {
-                return m_changeViewAction != null && m_changeViewAction.WasReleasedThisFrame();
+                return m_ChangeCameraAction.WasPressedThisFrame();
             }
+
             return false;
         }
-
-        static bool IsNetcodeOwnerPresentAndNotOwner(GameObject go)
-        {
-            var t = System.Type.GetType("Unity.Netcode.NetworkObject, Unity.Netcode.Runtime");
-            if (t == null) return false;
-            var comp = go != null ? go.GetComponent(t) : null;
-            if (comp == null) return false;
-
-            var isSpawnedProp = t.GetProperty("IsSpawned", BindingFlags.Public | BindingFlags.Instance);
-            if (isSpawnedProp != null)
-            {
-                var spawned = (bool)isSpawnedProp.GetValue(comp);
-                if (!spawned) return false;
-            }
-
-            var isOwnerProp = t.GetProperty("IsOwner", BindingFlags.Public | BindingFlags.Instance);
-            if (isOwnerProp == null) return false;
-            bool isOwner = (bool)isOwnerProp.GetValue(comp);
-            return !isOwner;
-        }
-
     }
-
 }

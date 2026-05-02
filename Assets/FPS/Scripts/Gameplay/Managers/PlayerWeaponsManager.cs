@@ -93,8 +93,6 @@ namespace Unity.FPS.Gameplay
         WeaponSwitchState m_WeaponSwitchState;
         int m_WeaponSwitchNewWeaponIndex;
 
-        GameObject CurrentTargetedEnemy;
-
         void Start()
         {
             ActiveWeaponIndex = -1;
@@ -137,86 +135,16 @@ namespace Unity.FPS.Gameplay
                     activeWeapon.StartReloadAnimation();
                     return;
                 }
+                // handle aiming down sights
+                IsAiming = m_InputHandler.GetAimInputHeld();
 
-                if (activeWeapon.DisableADSForThisWeapon) IsAiming = false;
-                else
-                {
-                    if (activeWeapon.UseCustomFireButtonOverride && activeWeapon.FireMouseButton == WeaponController.MouseButton.Right)
-                    {
-                        IsAiming = m_InputHandler.GetAimInputHeld() && !m_InputHandler.GetMouseRightHeld();
-                    }
-                    else { IsAiming = m_InputHandler.GetAimInputHeld(); }
-                }
+                // handle shooting
+                bool hasFired = activeWeapon.HandleShootInputs(
+                    m_InputHandler.GetFireInputDown(),
+                    m_InputHandler.GetFireInputHeld(),
+                    m_InputHandler.GetFireInputReleased());
 
-                // Primary weapon input mapping
-                bool pDown, pHeld, pUp;
-                if (activeWeapon.UseCustomFireButtonOverride)
-                {
-                    if (activeWeapon.FireMouseButton == WeaponController.MouseButton.Left)
-                    {
-                        pDown = m_InputHandler.GetMouseLeftDown();
-                        pHeld = m_InputHandler.GetMouseLeftHeld();
-                        pUp = m_InputHandler.GetMouseLeftReleased();
-                    }
-                    else
-                    {
-                        pDown = m_InputHandler.GetMouseRightDown();
-                        pHeld = m_InputHandler.GetMouseRightHeld();
-                        pUp = m_InputHandler.GetMouseRightReleased();
-                    }
-                }
-                else
-                {
-                    pDown = m_InputHandler.GetFireInputDown();
-                    pHeld = m_InputHandler.GetFireInputHeld();
-                    pUp = m_InputHandler.GetFireInputReleased();
-                }
-
-                bool hasFiredPrimary = activeWeapon.HandleShootInputsForMuzzle(activeWeapon.WeaponMuzzle, pDown, pHeld, pUp);
-
-                // Secondary weapon input mapping (if enabled)
-                bool hasFiredSecondary = false;
-                if (activeWeapon.SecondWeaponEnabled && activeWeapon.SecondWeaponMuzzle != null)
-                {
-                    bool sDown = false, sHeld = false, sUp = false;
-                    if (activeWeapon.UseCustomFireButtonOverrideSecondary)
-                    {
-                        if (activeWeapon.FireMouseButtonSecondary == WeaponController.MouseButton.Left)
-                        {
-                            sDown = m_InputHandler.GetMouseLeftDown(); sHeld = m_InputHandler.GetMouseLeftHeld(); sUp = m_InputHandler.GetMouseLeftReleased();
-                        }
-                        else
-                        {
-                            sDown = m_InputHandler.GetMouseRightDown(); sHeld = m_InputHandler.GetMouseRightHeld(); sUp = m_InputHandler.GetMouseRightReleased();
-                        }
-                    }
-
-                    if (activeWeapon.UseCustomFireButtonOverrideSecondary)
-                    {
-                        hasFiredSecondary = activeWeapon.HandleShootInputsForMuzzle(activeWeapon.SecondWeaponMuzzle, sDown, sHeld, sUp);
-                    }
-                }
-
-                bool hasFired = hasFiredPrimary || hasFiredSecondary;
-
-                // --- INICIO LÓGICA DE VOTACIÓN ---
-                if (hasFired && activeWeapon != null)
-                {
-                    if (activeWeapon.CompareTag("ArmaVoto"))
-                    {
-                        if (CurrentTargetedEnemy != null)
-                        {
-                            Component votingSync = GetComponent("PlayerVotingSync");
-                            if (votingSync != null)
-                            {
-                                if (hasFiredPrimary) votingSync.SendMessage("SubmitVoteHumano", CurrentTargetedEnemy, SendMessageOptions.DontRequireReceiver);
-                                else if (hasFiredSecondary) votingSync.SendMessage("SubmitVoteRobot", CurrentTargetedEnemy, SendMessageOptions.DontRequireReceiver);
-                            }
-                        }
-                    }
-                }
-                // --- FIN LÓGICA DE VOTACIÓN ---
-
+                // Handle accumulating recoil
                 if (hasFired)
                 {
                     m_AccumulatedRecoil += Vector3.back * activeWeapon.RecoilForce;
@@ -225,40 +153,38 @@ namespace Unity.FPS.Gameplay
             }
 
             // weapon switch handling
-            if (!IsAiming && (activeWeapon == null || !activeWeapon.IsCharging) && (m_WeaponSwitchState == WeaponSwitchState.Up || m_WeaponSwitchState == WeaponSwitchState.Down))
+            if (!IsAiming &&
+                (activeWeapon == null || !activeWeapon.IsCharging) &&
+                (m_WeaponSwitchState == WeaponSwitchState.Up || m_WeaponSwitchState == WeaponSwitchState.Down))
             {
                 int switchWeaponInput = m_InputHandler.GetSwitchWeaponInput();
-                if (switchWeaponInput != 0) { SwitchWeapon(switchWeaponInput > 0); }
+                if (switchWeaponInput != 0)
+                {
+                    bool switchUp = switchWeaponInput > 0;
+                    SwitchWeapon(switchUp);
+                }
                 else
                 {
                     switchWeaponInput = m_InputHandler.GetSelectWeaponInput();
                     if (switchWeaponInput != 0)
                     {
-                        if (GetWeaponAtSlotIndex(switchWeaponInput - 1) != null) SwitchToWeaponIndex(switchWeaponInput - 1);
+                        if (GetWeaponAtSlotIndex(switchWeaponInput - 1) != null)
+                            SwitchToWeaponIndex(switchWeaponInput - 1);
                     }
                 }
             }
 
-            // --- Pointing at enemy handling ---
+            // Pointing at enemy handling
             IsPointingAtEnemy = false;
-            CurrentTargetedEnemy = null; 
-
             if (activeWeapon)
             {
-                RaycastHit[] hits = Physics.RaycastAll(WeaponCamera.transform.position, WeaponCamera.transform.forward, 1000f, -1, QueryTriggerInteraction.Collide);
-                System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
-
-                foreach (var hit in hits)
+                if (Physics.Raycast(WeaponCamera.transform.position, WeaponCamera.transform.forward, out RaycastHit hit,
+                    1000, -1, QueryTriggerInteraction.Ignore))
                 {
-                    if (hit.collider.transform.IsChildOf(this.transform) || hit.collider.gameObject == this.gameObject) continue;
-
-                    Health targetHealth = hit.collider.GetComponentInParent<Health>();
-                    if (targetHealth != null)
+                    if (hit.collider.GetComponentInParent<Health>() != null)
                     {
                         IsPointingAtEnemy = true;
-                        CurrentTargetedEnemy = hit.collider.gameObject;
                     }
-                    break;
                 }
             }
         }

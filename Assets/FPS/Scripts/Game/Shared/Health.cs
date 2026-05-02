@@ -23,15 +23,6 @@ namespace Unity.FPS.Game
 
         bool m_IsDead;
 
-        void Awake()
-        {
-            // Importante: Start() puede ejecutarse DESPUÉS del primer daño (p. ej. impacto en FixedUpdate
-            // el mismo frame que spawnea el jugador). CurrentHealth por defecto es 0 → un solo hit parece letal
-            // y dispara OnDie / muertes fantasma en clientes que entran tarde.
-            CurrentHealth = MaxHealth;
-            m_IsDead = false;
-        }
-
         void Start()
         {
             CurrentHealth = MaxHealth;
@@ -78,13 +69,6 @@ namespace Unity.FPS.Game
             OnDamaged?.Invoke(MaxHealth, null);
 
             HandleDeath();
-        }
-
-        public void Revive()
-        {
-            CurrentHealth = MaxHealth;
-            m_IsDead = false;
-            OnHealed?.Invoke(MaxHealth);
         }
 
         void HandleDeath()
