@@ -253,6 +253,11 @@ public class BotGameplayActions : MonoBehaviour
         anim.SetBool("IsAiming", m_Weapons != null && m_Weapons.IsAiming);*/
     }
 
+    public void Flee()
+    {
+
+    }
+
     /// <summary>Ordena moverse hacia un punto del mundo (debe ser alcanzable por NavMesh).</summary>
     /// <returns><c>true</c> si se pudo fijar un destino válido.</returns>
     public bool TryMoveToWorldPosition(Vector3 worldPosition)

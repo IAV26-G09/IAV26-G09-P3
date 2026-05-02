@@ -17,3 +17,4 @@ MonoBehaviour:
   _initialState: {fileID: 0}
   Transitions:
   - {fileID: 11400000, guid: c7099abcb40644f46884fc1f41e7b8c4, type: 2}
+  - {fileID: 11400000, guid: 130b2929974bcee4a9d6f9b642fddf8c, type: 2}
