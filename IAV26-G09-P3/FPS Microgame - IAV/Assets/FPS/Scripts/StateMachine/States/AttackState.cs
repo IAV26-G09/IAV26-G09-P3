@@ -16,6 +16,12 @@ namespace HSM
         protected override void OnUpdate(StateMachine m, float deltaTime)
         {
             m.Owner.Actions.TryFireCurrentWeaponPrimary(true, true, true);
+
+            // si baja de x vida -> huye
+            if (m.Owner.Actions.Health.CurrentHealth <= m.Owner.Actions.Health.CriticalHealthRatio)
+            {
+
+            }
         }
     }
 }

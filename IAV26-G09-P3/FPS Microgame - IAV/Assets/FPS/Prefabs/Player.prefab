@@ -393,6 +393,7 @@ GameObject:
   - component: {fileID: 6090596741850911142}
   - component: {fileID: 4602642031214313718}
   - component: {fileID: 6238906669106968189}
+  - component: {fileID: 3360847255093392393}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -815,6 +816,9 @@ MonoBehaviour:
   m_AutoCreateNavMeshAgent: 1
   m_DefaultStoppingDistance: 1.5
   m_EnableWeaponManagerForBot: 1
+  radioVision: 10
+  angleVision: 30
+  debug: 1
 --- !u!114 &4602642031214313718
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -853,6 +857,27 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!135 &3360847255093392393
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253983127304857660}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 20
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &7383874627095517793
 GameObject:
   m_ObjectHideFlags: 0

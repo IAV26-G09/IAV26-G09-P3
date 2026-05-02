@@ -1,4 +1,6 @@
+using System;
 using HSM;
+using NUnit.Framework.Internal;
 using Unity.FPS.Game;
 using Unity.FPS.Gameplay;
 using UnityEngine;
@@ -23,29 +25,52 @@ using UnityEngine.AI;
 [DisallowMultipleComponent]
 public class BotGameplayActions : MonoBehaviour
 {
+    // -------- NAVEGACION
     [Header("Navegación (NavMeshAgent)")]
     [Tooltip("Si no hay agente en el prefab, se crea uno en tiempo de ejecución al inicializar.")]
     [SerializeField] bool m_AutoCreateNavMeshAgent = true;
 
     [SerializeField] float m_DefaultStoppingDistance = 1.5f;
 
-    [Header("Combate (opcional)")]
-    [Tooltip("Si es true, en InitializeWeaponSystemsIfNeeded se habilita PlayerWeaponsManager para que ejecute Start y cree las armas iniciales.")]
-    [SerializeField] bool m_EnableWeaponManagerForBot = true;
-
     NavMeshAgent m_NavMeshAgent;
-    PlayerWeaponsManager m_Weapons;
-    Health m_Health;
     PlayerCharacterController m_PlayerCc;
 
     Vector3 m_LastWorldPosForAnim;
     bool m_HasLastWorldPosForAnim;
 
-    /// <summary>Referencia al agente de navegación del bot (puede ser null antes de inicializar).</summary>
-    public NavMeshAgent NavMeshAgent => m_NavMeshAgent;
+    private Transform m_Transform;
 
-    /// <summary>Vida del personaje; útil para transiciones.</summary>
-    public Health Health => m_Health;
+    public NavMeshAgent NavMeshAgent => m_NavMeshAgent; // Referencia al agente de navegación del bot (puede ser null antes de inicializar)
+
+    // -------- COMBATE
+    [Header("Combate")]
+    [Tooltip("Si es true, en InitializeWeaponSystemsIfNeeded se habilita PlayerWeaponsManager para que ejecute Start y cree las armas iniciales.")]
+    [SerializeField] bool m_EnableWeaponManagerForBot = true;
+
+    PlayerWeaponsManager m_Weapons;
+    Health m_Health;
+
+    public Health Health => m_Health; // Vida del personaje, útil para transiciones
+
+    // -------- CAMPO VISION
+    [Header("Campo de vision")]
+    [SerializeField]
+    private float radioVision = 10.0f;
+    [SerializeField]
+    [Range(0.0f, 180.0f)] // para evitar que puedan ver mas alla de un angulo de vision de 180 grados
+    private float angleVision = 30.0f;
+    [SerializeField]
+    private bool debug = true;
+
+    private SphereCollider m_SphereCollider;
+
+    private bool m_SeesHealth;
+    private bool m_SeesEnemy;
+    private bool m_SeesWeapon;
+
+    public bool SeesHealth => m_SeesHealth;
+    public bool SeesEnemy => m_SeesEnemy;
+    public bool SeesWeapon => m_SeesWeapon;
 
     void Awake()
     {
@@ -53,6 +78,65 @@ public class BotGameplayActions : MonoBehaviour
         m_PlayerCc = GetComponent<PlayerCharacterController>();
         m_Weapons = GetComponent<PlayerWeaponsManager>();
         m_NavMeshAgent = GetComponent<NavMeshAgent>();
+        m_SphereCollider = GetComponent<SphereCollider>();
+
+        m_Transform = GetComponent<Transform>();
+
+        if (m_SphereCollider != null) m_SphereCollider.radius = radioVision;
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        // si es colision con algo que no nos interese no hace nada
+        if (other.GetComponent<HealthPickup>() == null) return;
+
+        // calculo del angulo desde delante
+        Vector3 directionToColl = other.GetComponent<Transform>().position - m_Transform.position;
+        float angleToPlayer = Vector3.Angle(m_Transform.forward, directionToColl);
+
+        // si estas dentro del campo de vision
+        if (angleToPlayer <= angleVision)
+        {
+            // si no hay nada entre el avatar y lo que me interesa
+            RaycastHit hit;
+            if (Physics.Raycast(m_Transform.position, directionToColl.normalized, out hit, radioVision))
+            {
+                // si con lo que choca en primera instancia es lo que me interesa
+                if (hit.collider.GetComponent<HealthPickup>() != null)
+                {
+                    m_SeesHealth = true;
+                }
+                else
+                {
+                    m_SeesHealth = false;
+                }
+            }
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        m_SeesHealth = false;
+    }
+
+    private void Update()
+    {
+        if(m_SeesHealth) Debug.Log("VEO POTI");
+
+        // Debug
+        if (debug)
+        {
+            Transform t = GetComponentInParent<Transform>();
+            float r = radioVision / 2;
+            float a = angleVision / 2;
+
+            Vector3 v1 = Vector3.RotateTowards(t.forward, t.right * -1, a * Mathf.Deg2Rad, 0);
+            Vector3 v2 = Vector3.RotateTowards(t.forward, t.right, a * Mathf.Deg2Rad, 0);
+
+            Debug.DrawRay(t.position, t.forward * r, Color.white, 0.1f);
+            Debug.DrawRay(t.position, v1 * r, Color.yellow, 0.1f);
+            Debug.DrawRay(t.position, v2 * r, Color.yellow, 0.1f);
+        }
     }
 
     void OnEnable()
@@ -254,7 +338,7 @@ public class BotGameplayActions : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(horizontalDirection.normalized, Vector3.up);
     }
 
-    // --- Armas (vía APIs públicas del proyecto) -----------------------------------------------
+    // --- Armas (vía APIs públicas del proyecto)
 
     /// <summary>Índice de arma activa, o -1 si ninguna.</summary>
     public int GetActiveWeaponSlotIndex()
@@ -314,7 +398,6 @@ public class BotGameplayActions : MonoBehaviour
     }
 
     // --- "Intención" de movimiento estilo FPS (útil para conectar la IA aquí) ---------
-
     /// <summary>
     /// Valores que un humano produce con WASD + sprint + agacharse. El proyecto <i>no</i> los lee
     /// todavía desde aquí: están expuestos para que podáis redirigirlos a
@@ -353,7 +436,7 @@ public class BotGameplayActions : MonoBehaviour
         };
     }
 
-    // --- Consultas rápidas (podéis añadir más si lo consideráis necesario -------------------------------------------------------------------
+    // --- Consultas rápidas (podéis añadir más si lo consideráis necesario
 
     /// <summary>¿Sigue vivo el bot?</summary>
     public bool IsAlive()
