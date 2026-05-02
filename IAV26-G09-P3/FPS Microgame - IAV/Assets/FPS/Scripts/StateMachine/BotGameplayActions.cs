@@ -99,7 +99,7 @@ public class BotGameplayActions : MonoBehaviour
         {
             // si no hay nada entre el avatar y lo que me interesa
             RaycastHit hit;
-            if (Physics.Raycast(m_Transform.position, directionToColl.normalized, out hit, radioVision))
+            if (m_SeesHealth = Physics.Raycast(m_Transform.position, directionToColl.normalized, out hit, radioVision))
             {
                 // si con lo que choca en primera instancia es lo que me interesa
                 if (hit.collider.GetComponent<HealthPickup>() != null)
