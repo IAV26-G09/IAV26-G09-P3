@@ -394,6 +394,7 @@ GameObject:
   - component: {fileID: 4602642031214313718}
   - component: {fileID: 6238906669106968189}
   - component: {fileID: 3360847255093392393}
+  - component: {fileID: 6437330951089404772}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -437,6 +438,8 @@ MonoBehaviour:
   TriggerAxisThreshold: 0.4
   InvertYAxis: 0
   InvertXAxis: 0
+  firstCamera: {fileID: 8303093099919959869}
+  botMode: 1
 --- !u!114 &814417836257332542
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -878,6 +881,18 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 20
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6437330951089404772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253983127304857660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e9e860994515be46bed47a11d83aefe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7383874627095517793
 GameObject:
   m_ObjectHideFlags: 0

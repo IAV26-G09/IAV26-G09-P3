@@ -34,6 +34,10 @@ namespace Unity.FPS.Gameplay
         private InputAction m_CrouchAction;
         private InputAction m_ReloadAction;
         private InputAction m_NextWeaponAction;
+        private InputAction m_ChangeCameraAction;
+
+        [SerializeField]
+        private bool botMode;
 
         void Start()
         {
@@ -55,16 +59,34 @@ namespace Unity.FPS.Gameplay
             m_CrouchAction = InputSystem.actions.FindAction("Player/Crouch");
             m_ReloadAction = InputSystem.actions.FindAction("Player/Reload");
             m_NextWeaponAction = InputSystem.actions.FindAction("Player/NextWeapon");
+            m_ChangeCameraAction = InputSystem.actions.FindAction("Player/ChangeCamera");
             
-            m_MoveAction.Enable();
-            m_LookAction.Enable();
-            m_JumpAction.Enable();
-            m_FireAction.Enable();
-            m_AimAction.Enable();
-            m_SprintAction.Enable();
-            m_CrouchAction.Enable();
-            m_ReloadAction.Enable();
-            m_NextWeaponAction.Enable();
+            if (!botMode)
+            {
+                m_MoveAction.Enable();
+                m_LookAction.Enable();
+                m_JumpAction.Enable();
+                m_FireAction.Enable();
+                m_AimAction.Enable();
+                m_SprintAction.Enable();
+                m_CrouchAction.Enable();
+                m_ReloadAction.Enable();
+                m_NextWeaponAction.Enable();
+                m_ChangeCameraAction.Enable();
+            }
+            else
+            {
+                m_MoveAction.Disable();
+                m_LookAction.Disable();
+                m_JumpAction.Disable();
+                m_FireAction.Disable();
+                m_AimAction.Disable();
+                m_SprintAction.Disable();
+                m_CrouchAction.Disable();
+                m_ReloadAction.Disable();
+                m_NextWeaponAction.Disable();
+                m_ChangeCameraAction.Disable();
+            }
         }
 
         void LateUpdate()
@@ -74,8 +96,7 @@ namespace Unity.FPS.Gameplay
 
         public bool CanProcessInput()
         {
-            //return Cursor.lockState == CursorLockMode.Locked && !m_GameFlowManager.GameIsEnding;
-            return false;
+            return Cursor.lockState == CursorLockMode.Locked && !m_GameFlowManager.GameIsEnding;
         }
 
         public Vector3 GetMoveInput()
@@ -265,6 +286,16 @@ namespace Unity.FPS.Gameplay
             }
 
             return 0;
+        }
+
+        public bool GetChangeCameraDown()
+        {
+            if (CanProcessInput())
+            {
+                return m_ChangeCameraAction.WasPressedThisFrame();
+            }
+
+            return false;
         }
     }
 }
