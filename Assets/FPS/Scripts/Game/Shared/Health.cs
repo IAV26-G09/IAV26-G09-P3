@@ -21,7 +21,7 @@ namespace Unity.FPS.Game
         public float GetRatio() => CurrentHealth / MaxHealth;
         public bool IsCritical() => GetRatio() <= CriticalHealthRatio;
 
-        bool m_IsDead;
+        //bool m_IsDead;
 
         void Start()
         {
@@ -73,14 +73,12 @@ namespace Unity.FPS.Game
 
         void HandleDeath()
         {
-            if (m_IsDead)
-                return;
-
-            // call OnDie action
             if (CurrentHealth <= 0f)
             {
-                m_IsDead = true;
-                OnDie?.Invoke();
+                CurrentHealth = MaxHealth;
+
+                EventManager.Broadcast(Events.PlayerDeathEvent);
+                //OnDie?.Invoke();
             }
         }
     }

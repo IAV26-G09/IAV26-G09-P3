@@ -121,7 +121,7 @@ public class BotGameplayActions : MonoBehaviour
 
     private void Update()
     {
-        if(m_SeesHealth) Debug.Log("VEO POTI");
+        //if(m_SeesHealth) Debug.Log("VEO POTI");
 
         // Debug
         if (debug)

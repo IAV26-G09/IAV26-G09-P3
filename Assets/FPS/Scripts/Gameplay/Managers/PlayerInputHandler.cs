@@ -85,7 +85,9 @@ namespace Unity.FPS.Gameplay
                 m_CrouchAction.Disable();
                 m_ReloadAction.Disable();
                 m_NextWeaponAction.Disable();
-                m_ChangeCameraAction.Disable();
+
+                m_ChangeCameraAction.Enable();
+                //m_ChangeCameraAction.Disable();
             }
         }
 

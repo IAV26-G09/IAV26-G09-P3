@@ -570,7 +570,7 @@ GameObject:
   - component: {fileID: 7844924761744406956}
   - component: {fileID: 1624006081306454680}
   m_Layer: 5
-  m_Name: HorizontalContent (2)
+  m_Name: HorizontalContent2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2385,6 +2385,7 @@ GameObject:
   - component: {fileID: 4692738559174620312}
   - component: {fileID: 1845787234550258351}
   - component: {fileID: 1610334969856411743}
+  - component: {fileID: 3822820355896909004}
   m_Layer: 5
   m_Name: GameHUD
   m_TagString: Untagged
@@ -2566,6 +2567,20 @@ MonoBehaviour:
   DisplayMessageRect: {fileID: 9119402869326549703}
   MessagePrefab: {fileID: 876710413839154128, guid: dbfc7742a2f49bf42a9a012e4ec4b773,
     type: 3}
+--- !u!114 &3822820355896909004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5413294659218134590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e0be7ff1d6d4614293753890ad354fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  muertes: {fileID: 6646622724524107586}
+  asesinatos: {fileID: 1555938956595370887}
 --- !u!1 &5649045762095678184
 GameObject:
   m_ObjectHideFlags: 0
@@ -3471,7 +3486,7 @@ GameObject:
   - component: {fileID: 4712429581785064596}
   - component: {fileID: 1438120932239460749}
   m_Layer: 5
-  m_Name: HorizontalContent (1)
+  m_Name: HorizontalContent1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
