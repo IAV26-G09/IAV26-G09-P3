@@ -64,7 +64,9 @@ public class BotGameplayActions : MonoBehaviour
 
     private SphereCollider m_SphereCollider;
 
-    private bool m_SeesHealth;
+    public bool m_SeesHealth { get; set; }
+    private Transform m_HealthTransform;
+
     private bool m_SeesEnemy;
     private bool m_SeesWeapon;
 
@@ -72,8 +74,12 @@ public class BotGameplayActions : MonoBehaviour
     public bool SeesEnemy => m_SeesEnemy;
     public bool SeesWeapon => m_SeesWeapon;
 
+    public Transform HealthTransform => m_HealthTransform;
+
     void Awake()
     {
+        EventManager.AddListener<PickupEvent>(OnPickUp);
+
         m_Health = GetComponent<Health>();
         m_PlayerCc = GetComponent<PlayerCharacterController>();
         m_Weapons = GetComponent<PlayerWeaponsManager>();
@@ -105,10 +111,12 @@ public class BotGameplayActions : MonoBehaviour
                 if (hit.collider.GetComponent<HealthPickup>() != null)
                 {
                     m_SeesHealth = true;
+                    m_HealthTransform = other.GetComponent<Transform>();
                 }
                 else
                 {
                     m_SeesHealth = false;
+                    m_HealthTransform = null;
                 }
             }
         }
@@ -117,6 +125,15 @@ public class BotGameplayActions : MonoBehaviour
     private void OnTriggerExit(Collider other)
     {
         m_SeesHealth = false;
+        m_HealthTransform = null;
+    }
+
+    void OnPickUp(PickupEvent evt)
+    {
+        if (evt.Pickup.GetComponent<HealthPickup>() != null)
+        {
+            m_SeesHealth = false;
+        }
     }
 
     private void Update()
