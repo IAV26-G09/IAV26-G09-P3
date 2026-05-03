@@ -33,6 +33,7 @@ namespace HSM
             {
                 Debug.Log("RECUPERADA");
                 noHealing = false;
+                a.SeesHealth = false;
                 return e;
             }
 

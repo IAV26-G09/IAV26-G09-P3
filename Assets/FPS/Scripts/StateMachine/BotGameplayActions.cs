@@ -64,13 +64,13 @@ public class BotGameplayActions : MonoBehaviour
 
     private SphereCollider m_SphereCollider;
 
-    public bool m_SeesHealth { get; set; }
+    public bool SeesHealth { get; set; }
     private Transform m_HealthTransform;
 
     private bool m_SeesEnemy;
     private bool m_SeesWeapon;
 
-    public bool SeesHealth => m_SeesHealth;
+    //public bool SeesHealth => m_SeesHealth;
     public bool SeesEnemy => m_SeesEnemy;
     public bool SeesWeapon => m_SeesWeapon;
 
@@ -105,17 +105,17 @@ public class BotGameplayActions : MonoBehaviour
         {
             // si no hay nada entre el avatar y lo que me interesa
             RaycastHit hit;
-            if (m_SeesHealth = Physics.Raycast(m_Transform.position, directionToColl.normalized, out hit, radioVision))
+            if (SeesHealth = Physics.Raycast(m_Transform.position, directionToColl.normalized, out hit, radioVision))
             {
                 // si con lo que choca en primera instancia es lo que me interesa
                 if (hit.collider.GetComponent<HealthPickup>() != null)
                 {
-                    m_SeesHealth = true;
+                    SeesHealth = true;
                     m_HealthTransform = other.GetComponent<Transform>();
                 }
                 else
                 {
-                    m_SeesHealth = false;
+                    SeesHealth = false;
                     m_HealthTransform = null;
                 }
             }
@@ -124,7 +124,7 @@ public class BotGameplayActions : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        m_SeesHealth = false;
+        SeesHealth = false;
         m_HealthTransform = null;
     }
 
@@ -132,7 +132,7 @@ public class BotGameplayActions : MonoBehaviour
     {
         if (evt.Pickup.GetComponent<HealthPickup>() != null)
         {
-            m_SeesHealth = false;
+            SeesHealth = false;
         }
     }
 
