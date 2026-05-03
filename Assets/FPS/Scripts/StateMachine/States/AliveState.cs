@@ -7,12 +7,15 @@ namespace HSM
     {
         protected override State GetTransition(BotGameplayActions a)
         {
-            //if (paseo)
-            //{
-            //    Debug.Log("VOY A PASEO");
-            //    paseo = false;
-            //    return ((BotRoot)Parent).Dead;
-            //}
+            //Debug.Log(a.Health.CurrentHealth);
+
+            if (a.Health.HasDied)
+            {
+                a.Health.HasDied = false;
+                State e = Transitions.Find(x => x.stateName.Contains("Dead"));
+                return e;
+            }
+
             return null;
         }
 
@@ -20,7 +23,5 @@ namespace HSM
         {
             Debug.Log("ENTER ALIVE");
         }
-
-        //protected override State GetInitialState() => engage;
     }
 }
