@@ -1,6 +1,7 @@
 using System;
 using HSM;
 using NUnit.Framework.Internal;
+using Unity.FPS.AI;
 using Unity.FPS.Game;
 using Unity.FPS.Gameplay;
 using UnityEngine;
@@ -65,16 +66,16 @@ public class BotGameplayActions : MonoBehaviour
     private SphereCollider m_SphereCollider;
 
     public bool SeesHealth { get; set; }
+    public bool SeesEnemy { get; set; }
+
     private Transform m_HealthTransform;
+    private Transform m_EnemyTransform;
 
-    private bool m_SeesEnemy;
     private bool m_SeesWeapon;
-
-    //public bool SeesHealth => m_SeesHealth;
-    public bool SeesEnemy => m_SeesEnemy;
     public bool SeesWeapon => m_SeesWeapon;
 
     public Transform HealthTransform => m_HealthTransform;
+    public Transform EnemyTransform => m_EnemyTransform;
 
     void Awake()
     {
@@ -94,7 +95,13 @@ public class BotGameplayActions : MonoBehaviour
     private void OnTriggerStay(Collider other)
     {
         // si es colision con algo que no nos interese no hace nada
-        if (other.GetComponent<HealthPickup>() == null) return;
+        if (other.GetComponent<HealthPickup>() == null &&
+            other.GetComponent<EnemyController>() == null)
+        {
+            return;
+        }
+
+        Debug.Log(other.GetComponent<Transform>().position);
 
         // calculo del angulo desde delante
         Vector3 directionToColl = other.GetComponent<Transform>().position - m_Transform.position;
@@ -104,28 +111,66 @@ public class BotGameplayActions : MonoBehaviour
         if (angleToPlayer <= angleVision)
         {
             // si no hay nada entre el avatar y lo que me interesa
-            RaycastHit hit;
-            if (SeesHealth = Physics.Raycast(m_Transform.position, directionToColl.normalized, out hit, radioVision))
+            if (Physics.Raycast(m_Transform.position, directionToColl.normalized, out RaycastHit hit, radioVision))
             {
-                // si con lo que choca en primera instancia es lo que me interesa
+                // si con lo que choca es health pickup
                 if (hit.collider.GetComponent<HealthPickup>() != null)
                 {
+                    Debug.Log("veo poti");
+
                     SeesHealth = true;
                     m_HealthTransform = other.GetComponent<Transform>();
                 }
                 else
                 {
+                    Debug.Log("NO veo poti");
+
                     SeesHealth = false;
                     m_HealthTransform = null;
                 }
+                // si con lo que choca es enemy
+                if (hit.collider.GetComponent<EnemyController>() != null)
+                {
+                    Debug.Log("veo enemigo");
+
+                    SeesEnemy = true;
+                    m_EnemyTransform = other.GetComponent<Transform>();
+                }
+                else
+                {
+                    Debug.Log("NO veo enemigo");
+
+                    SeesEnemy = false;
+                    m_EnemyTransform = null;
+                }
+            }
+            else
+            {
+                SeesHealth = false;
+                m_HealthTransform = null;
+
+                SeesEnemy = false;
+                m_EnemyTransform = null;
             }
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        SeesHealth = false;
-        m_HealthTransform = null;
+        if (other.GetComponent<HealthPickup>() != null)
+        {
+            SeesHealth = false;
+            m_HealthTransform = null;
+        }
+
+        else if (other.GetComponent<EnemyController>() != null)
+        {
+
+            Debug.Log("pierdo de vista");
+
+            SeesEnemy = false;
+            m_EnemyTransform = null;
+        }
     }
 
     void OnPickUp(PickupEvent evt)
@@ -270,9 +315,21 @@ public class BotGameplayActions : MonoBehaviour
         anim.SetBool("IsAiming", m_Weapons != null && m_Weapons.IsAiming);*/
     }
 
-    public void Flee()
+    public bool Flee()
     {
+        if (SeesEnemy)
+        {
+            if (EnemyTransform != null)
+            {
+                Vector3 lineal = m_Transform.position - EnemyTransform.transform.position;
+                lineal.Normalize();
 
+                Vector3 fleeDestination = m_Transform.position + lineal * radioVision;
+                TryMoveToWorldPosition(fleeDestination);
+            }
+        }
+
+        return true;
     }
 
     public void Respawn()

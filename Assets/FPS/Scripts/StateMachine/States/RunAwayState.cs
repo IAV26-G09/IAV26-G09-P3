@@ -12,7 +12,10 @@ namespace HSM
 
         protected override void OnUpdate(StateMachine m, float deltaTime)
         {
-            m.Owner.Actions.Flee();
+            if (m.Owner.Actions.Flee())
+            {
+                //Debug.Log("HUYENDO");
+            }
         }
 
         protected override State GetTransition(BotGameplayActions a)
