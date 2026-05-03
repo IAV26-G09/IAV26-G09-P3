@@ -12,6 +12,7 @@ namespace HSM
             if (a.Health.HasDied)
             {
                 a.Health.HasDied = false;
+                a.Respawn();
                 State e = Transitions.Find(x => x.stateName.Contains("Dead"));
                 return e;
             }

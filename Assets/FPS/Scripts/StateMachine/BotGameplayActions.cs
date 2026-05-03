@@ -258,6 +258,11 @@ public class BotGameplayActions : MonoBehaviour
 
     }
 
+    public void Respawn()
+    {
+        m_Transform.position = new Vector3(0, 2, -37);
+    }
+
     /// <summary>Ordena moverse hacia un punto del mundo (debe ser alcanzable por NavMesh).</summary>
     /// <returns><c>true</c> si se pudo fijar un destino válido.</returns>
     public bool TryMoveToWorldPosition(Vector3 worldPosition)
