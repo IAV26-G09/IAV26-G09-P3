@@ -12,11 +12,21 @@ namespace HSM
 
         protected override State GetTransition(BotGameplayActions a)
         {
-            var agent = a.NavMeshAgent;
-            if (agent.hasPath && a.HasReachedCurrentDestination())
+            if (a.Health != null && a.Health.CurrentHealth <= a.Health.CriticalHealthRatio)
             {
-                //Debug.Log("VOY A IDLE");
-                //return ((Dead)Parent).Idle;
+                State e = FindTransition("Recover");
+                Debug.Log("VOY A RECOVER");
+                return e;
+            }
+
+            if (a.HasEnemyTarget())
+            {
+                State e = FindTransition("Engage");
+                if (e != null)
+                {
+                    Debug.Log("VOY A ENGAGE");
+                    return e;
+                }
             }
 
             return null;

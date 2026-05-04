@@ -44,6 +44,11 @@ namespace HSM
         protected virtual void OnExit(BotGameplayActions a) {}
         protected virtual void OnUpdate(StateMachine m, float deltaTime) {}
 
+        protected State FindTransition(string containsName)
+        {
+            return Transitions.Find(x => x != null && x.stateName.Contains(containsName));
+        }
+
         // metodos internos
         internal void Enter(BotGameplayActions a)
         {

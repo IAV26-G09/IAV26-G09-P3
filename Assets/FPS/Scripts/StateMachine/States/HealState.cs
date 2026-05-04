@@ -25,7 +25,7 @@ namespace HSM
 
         protected override State GetTransition(BotGameplayActions a)
         {
-            Debug.Log(a.Health.CurrentHealth + " " + pHealth);
+            //Debug.Log(a.Health.CurrentHealth + " " + pHealth);
 
             State e = Transitions.Find(x => x.stateName.Contains("Patrol"));
 

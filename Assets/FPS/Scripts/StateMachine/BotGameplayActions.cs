@@ -108,7 +108,7 @@ public class BotGameplayActions : MonoBehaviour
             return;
         }
 
-        Debug.Log(other.GetComponent<Transform>().position + " " + other.gameObject.name);
+        //Debug.Log(other.GetComponent<Transform>().position + " " + other.gameObject.name);
 
         // calculo del angulo desde delante
         Vector3 directionToColl = other.GetComponent<Transform>().position - m_Transform.position;
@@ -543,5 +543,93 @@ public class BotGameplayActions : MonoBehaviour
     public bool IsAlive()
     {
         return m_Health == null || m_Health.CurrentHealth > 0f;
+    }
+
+    public EnemyController GetCurrentEnemyController()
+    {
+        if (m_EnemyTransform == null)
+            return null;
+
+        return m_EnemyTransform.GetComponentInParent<EnemyController>();
+    }
+
+    public bool HasEnemyTarget()
+    {
+        var enemy = GetCurrentEnemyController();
+        if (enemy == null)
+            return false;
+
+        // SeesEnemy viene de trigger/raycast y puede fluctuar un frame; mantenemos validacion por LoS.
+        return SeesEnemy || HasCurrentEnemySight(radioVision + 2f);
+    }
+
+    public Vector3 GetCurrentEnemyAimPosition()
+    {
+        var enemy = GetCurrentEnemyController();
+        if (enemy == null)
+            return transform.position;
+
+        return enemy.transform.position;
+    }
+
+    public float GetDistanceToCurrentEnemy()
+    {
+        var enemy = GetCurrentEnemyController();
+        if (enemy == null)
+            return Single.PositiveInfinity;
+
+        return Vector3.Distance(transform.position, enemy.transform.position);
+    }
+
+    public bool HasCurrentEnemySight(float maxDistance = 100f)
+    {
+        var enemy = GetCurrentEnemyController();
+        if (enemy == null)
+            return false;
+
+        var origin = transform.position + Vector3.up * 1.3f;
+        var target = GetCurrentEnemyAimPosition();
+        var direction = target - origin;
+        float distance = Mathf.Min(direction.magnitude, maxDistance);
+
+        if (distance <= 0.001f)
+            return true;
+
+        direction /= direction.magnitude;
+
+        if (!Physics.Raycast(origin, direction, out var hit, distance))
+            return false;
+
+        return hit.collider != null && hit.collider.GetComponentInParent<EnemyController>() == enemy;
+    }
+
+    public bool CanAttackCurrentEnemy(float maxRange)
+    {
+        if (!HasEnemyTarget())
+            return false;
+
+        if (GetDistanceToCurrentEnemy() > maxRange)
+            return false;
+
+        return HasCurrentEnemySight(maxRange + 2f);
+    }
+
+    public bool TryMoveToCurrentEnemy()
+    {
+        var enemy = GetCurrentEnemyController();
+        if (enemy == null)
+            return false;
+
+        return TryMoveToWorldPosition(enemy.transform.position);
+    }
+
+    public void FaceCurrentEnemy()
+    {
+        FaceTowardsWorldPoint(GetCurrentEnemyAimPosition());
+    }
+
+    public void ForgetEnemy()
+    {
+        m_EnemyTransform = null;
     }
 }

@@ -17,3 +17,6 @@ MonoBehaviour:
   _initialState: {fileID: 0}
   Transitions:
   - {fileID: 11400000, guid: c4124f2f8bd35c340805e874274b7bc9, type: 2}
+  - {fileID: 11400000, guid: 888d0726b4cfe514b9d5c4e2187a1779, type: 2}
+  - {fileID: 11400000, guid: e4fa278076ae060448ab86c1e3fb3a13, type: 2}
+  attackRange: 14
