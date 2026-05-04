@@ -2,7 +2,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace HSM
+namespace HFSM
 {
     [CreateAssetMenu(menuName = "HSM/States/Attack", fileName = "Attack")]
     public class Attack : State

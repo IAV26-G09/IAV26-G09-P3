@@ -16,7 +16,7 @@ using UnityEngine;
  * (ejemplo de arbol como el que esta ahora mismo hardcodeado en fsm)
  */
 
-namespace HSM
+namespace HFSM
 {
     public abstract class State : ScriptableObject // nodo en la maquina de estados
     {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HSM
+namespace HFSM
 {
     [CreateAssetMenu(menuName = "HSM/States/BotRoot", fileName = "BotRoot")]
     public class BotRoot : State

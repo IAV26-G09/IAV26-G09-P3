@@ -1,5 +1,5 @@
 using System;
-using HSM;
+using HFSM;
 using NUnit.Framework.Internal;
 using Unity.FPS.AI;
 using Unity.FPS.Game;

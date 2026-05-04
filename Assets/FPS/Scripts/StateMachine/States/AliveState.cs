@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HSM
+namespace HFSM
 {
     [CreateAssetMenu(menuName = "HSM/States/Alive", fileName = "Alive")]
     public class Alive : State

@@ -81,7 +81,7 @@ namespace Unity.FPS.Game
                 CurrentHealth = MaxHealth;
 
                 EventManager.Broadcast(Events.PlayerDeathEvent);
-                //OnDie?.Invoke();
+                OnDie?.Invoke();
             }
         }
     }

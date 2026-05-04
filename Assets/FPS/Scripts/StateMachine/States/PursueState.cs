@@ -1,7 +1,7 @@
-using HSM;
+using HFSM;
 using UnityEngine;
 
-namespace HSM
+namespace HFSM
 {
     [CreateAssetMenu(menuName = "HSM/States/Pursue", fileName = "Pursue")]
     public class Pursue : State

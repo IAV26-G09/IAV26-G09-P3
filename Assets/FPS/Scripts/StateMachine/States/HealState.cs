@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HSM
+namespace HFSM
 {
     [CreateAssetMenu(menuName = "HSM/States/Heal", fileName = "Heal")]
     public class Heal : State

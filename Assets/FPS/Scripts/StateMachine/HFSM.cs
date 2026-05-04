@@ -19,20 +19,8 @@ using Random = UnityEngine.Random;
  *
  */
 
-namespace HSM
+namespace HFSM
 {
-// =================================================================================================
-// FSM — Plantilla de máquina de estados SIMPLIFICADA Y A FUEGO EN EL CÓDIGO para UCM_Bot
-// =================================================================================================
-// Objetivo:
-//   • Separar "qué decide la IA" (esta clase) de "cómo se ejecutan las acciones en el juego"
-//     (ver BotGameplayActions).
-//
-// Vuestra tarea es escribir código aquí de una verdadera máquina de estados jerárquica:
-// que cargue la información de estados, transiciones, condiciones (según salud, según distancia a enemigos, etc.)
-// y cuando haya que realizar alguna acción delegar en m_Actions.
-// =================================================================================================
-
 [RequireComponent(typeof(BotGameplayActions))]
 [DisallowMultipleComponent]
 public class FSM : MonoBehaviour

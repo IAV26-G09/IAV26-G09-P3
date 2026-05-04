@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace HSM
+namespace HFSM
 {
     public class StateMachine // gestiona el arbol de estados, lo contiene el monobehaviour FSM
     {
