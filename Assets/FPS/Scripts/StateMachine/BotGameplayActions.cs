@@ -101,7 +101,7 @@ public class BotGameplayActions : MonoBehaviour
             return;
         }
 
-        Debug.Log(other.GetComponent<Transform>().position);
+        Debug.Log(other.GetComponent<Transform>().position + " " + other.gameObject.name);
 
         // calculo del angulo desde delante
         Vector3 directionToColl = other.GetComponent<Transform>().position - m_Transform.position;
@@ -131,14 +131,14 @@ public class BotGameplayActions : MonoBehaviour
                 // si con lo que choca es enemy
                 if (hit.collider.GetComponent<EnemyController>() != null)
                 {
-                    Debug.Log("veo enemigo");
+                    Debug.Log("veo enemigo, raycast a: " + hit.collider.gameObject.name);
 
                     SeesEnemy = true;
                     m_EnemyTransform = other.GetComponent<Transform>();
                 }
                 else
                 {
-                    Debug.Log("NO veo enemigo");
+                    Debug.Log("NO veo enemigo, raycast a: " + hit.collider.gameObject.name);
 
                     SeesEnemy = false;
                     m_EnemyTransform = null;
