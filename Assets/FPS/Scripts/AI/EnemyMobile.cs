@@ -80,6 +80,12 @@ namespace Unity.FPS.AI
             switch (AiState)
             {
                 case AIState.Follow:
+                    if (m_EnemyController.KnownDetectedTarget == null)
+                    {
+                        AiState = AIState.Patrol;
+                        break;
+                    }
+
                     // Transition to attack when there is a line of sight to the target
                     if (m_EnemyController.IsSeeingTarget && m_EnemyController.IsTargetInAttackRange)
                     {
@@ -89,8 +95,14 @@ namespace Unity.FPS.AI
 
                     break;
                 case AIState.Attack:
-                    // Transition to follow when no longer a target in attack range
-                    if (!m_EnemyController.IsTargetInAttackRange)
+                    if (m_EnemyController.KnownDetectedTarget == null)
+                    {
+                        AiState = AIState.Patrol;
+                        break;
+                    }
+
+                    // Transition to follow when target is no longer shootable from current position
+                    if (!m_EnemyController.IsTargetInAttackRange || !m_EnemyController.IsSeeingTarget)
                     {
                         AiState = AIState.Follow;
                     }
@@ -114,6 +126,12 @@ namespace Unity.FPS.AI
                     m_EnemyController.OrientWeaponsTowards(m_EnemyController.KnownDetectedTarget.transform.position);
                     break;
                 case AIState.Attack:
+                    if (m_EnemyController.KnownDetectedTarget == null)
+                    {
+                        AiState = AIState.Patrol;
+                        return;
+                    }
+
                     if (Vector3.Distance(m_EnemyController.KnownDetectedTarget.transform.position,
                             m_EnemyController.DetectionModule.DetectionSourcePoint.position)
                         >= (AttackStopDistanceRatio * m_EnemyController.DetectionModule.AttackRange))
@@ -126,7 +144,10 @@ namespace Unity.FPS.AI
                     }
 
                     m_EnemyController.OrientTowards(m_EnemyController.KnownDetectedTarget.transform.position);
-                    m_EnemyController.TryAtack(m_EnemyController.KnownDetectedTarget.transform.position);
+                    if (m_EnemyController.IsSeeingTarget)
+                    {
+                        m_EnemyController.TryAtack(m_EnemyController.KnownDetectedTarget.transform.position);
+                    }
                     break;
             }
         }

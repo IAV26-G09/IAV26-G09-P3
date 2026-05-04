@@ -79,17 +79,24 @@ namespace Unity.FPS.AI
             switch (AiState)
             {
                 case AIState.Attack:
+                    if (m_EnemyController.KnownDetectedTarget == null)
+                    {
+                        AiState = AIState.Idle;
+                        return;
+                    }
+
+                    bool canSeeAndShoot = m_EnemyController.IsSeeingTarget && m_EnemyController.IsTargetInAttackRange;
                     bool mustShoot = Time.time > m_TimeStartedDetection + DetectionFireDelay;
                     // Calculate the desired rotation of our turret (aim at target)
                     Vector3 directionToTarget =
                         (m_EnemyController.KnownDetectedTarget.transform.position - TurretAimPoint.position).normalized;
                     Quaternion offsettedTargetRotation =
-                        Quaternion.LookRotation(directionToTarget) * m_RotationWeaponForwardToPivot;
+                    Quaternion.LookRotation(directionToTarget) * m_RotationWeaponForwardToPivot;
                     m_PivotAimingRotation = Quaternion.Slerp(m_PreviousPivotAimingRotation, offsettedTargetRotation,
-                        (mustShoot ? AimRotationSharpness : LookAtRotationSharpness) * Time.deltaTime);
+                        (canSeeAndShoot ? AimRotationSharpness : LookAtRotationSharpness) * Time.deltaTime);
 
                     // shoot
-                    if (mustShoot)
+                    if (canSeeAndShoot && mustShoot)
                     {
                         Vector3 correctedDirectionToTarget =
                             (m_PivotAimingRotation * Quaternion.Inverse(m_RotationWeaponForwardToPivot)) *
