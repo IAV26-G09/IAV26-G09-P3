@@ -128,6 +128,7 @@ public class BotGameplayActions : MonoBehaviour
                     SeesHealth = false;
                     m_HealthTransform = null;
                 }
+
                 // si con lo que choca es enemy
                 if (hit.collider.GetComponent<EnemyController>() != null)
                 {
