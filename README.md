@@ -330,7 +330,7 @@ Implementación: Se adjuntan los scripts con el código fuente que implementan l
 | D | Máquina de estados finita jerárquica | [TransitionManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/TransitionManager.cs) |
 | E | Toma de métricas | [MetricsManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/MetricsManager.cs) |
 
-Detallamos a continuación la información sobre las clases y prefabs más relevantes:
+Detallamos a continuación la información sobre las clases, *ScriptableObjects* y *Prefabs* más relevantes:
 
 | Nuevas respecto a la plantilla | De la plantilla modificadas |  
 |:-:|:-:|
@@ -393,9 +393,7 @@ Archivos .asset encargados de contener los datos del estado al que representen. 
 - __Transitions__, lista de todos los estados hasta los que puede transicionar.
 
 ### Prefabs
-*Human_Prefab* representa al jugador humano y *UCM_Bot* es la IA que hay que programar si se quiere tener un bot contra el que enfrentarse.
-
-#### Player
+#### Player 🟡
 En Player encontramos los componentes básicos para gestionar a un agente como pueden ser **Health**, **Character Controller**, **Actor**, **Damageable**, **Nav Mesh Agent**, etc., a estos se han añadido: **FSM** como gestor de máquina de estados, **BotGameplayActions** como gestor de acciones y **Camera Cycler** para gestionar el cambio de cámaras de la escena.
 
 ## Pruebas y métricas
