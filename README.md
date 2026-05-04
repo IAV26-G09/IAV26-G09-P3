@@ -54,11 +54,11 @@ La implementación de la práctica se centra en el desarrollo de la inteligencia
 Al clicar al botón *Play* en la escena *IntroMenu*, con el que iniciará el juego, se va a la escena *MainScene*, el nivel de la cárcel espacial, un entorno 3D explorable donde irán apareciendo:
 - Prisioneros. Aparecen en alguno de los puntos de regeneración. Pueden moverse, disparar, apuntar, cambiar de arma y correr. Sus movimientos podrán ser implementados mediante mecánicas de IA.
 
-- Recogibles. Sólo los prisioneros pueden cogerlas y utilizarlas:
+- Recogibles. Sólo los prisioneros pueden cogerlos o utilizarlos:
 1. Escopeta (shot gun), causa daño en un radio más ancho.
 2. Botiquines, para recuperar salud.
 
-- Vigilantes robóticos. Hay de dos tipos, las torretas (turrets) y los robots flotantes (hover bots). Las primeras son más poderosas pero permanecen ancladas en sus ubicaciones originales, mientras que los segundos son más débiles pero tienen movilidad. Todos los vigilantes robóticos disparan a los prisioneros y pueden matarlos. 
+- Vigilantes robóticos. Hay de dos tipos, las torretas (Turrets) y los robots flotantes (HoverBots). Las primeras son más poderosas pero permanecen ancladas en sus ubicaciones originales, mientras que los segundos son más débiles pero tienen movilidad. Todos los vigilantes robóticos disparan a los prisioneros y pueden matarlos. 
 
 #### Jerarquía de recursos
 ```text
@@ -98,7 +98,7 @@ Dentro de FPS los recursos que conforman el proyecto están organizados de esta 
 ### Estructura de las escenas
 Para la implementación del proyecto son relevantes dos escenas:
 * IntroMenu: Se muestra un botón para jugar y un botón para visualizar los controles.
-* PrisonScene: El mundo virtual con obstáculos, enemigos y puntos de regeneración de personajes y objetos, con su respectiva NavMesh para su correcta navegación.
+* MainScene: El mundo virtual con obstáculos, enemigos y puntos de regeneración de personajes y objetos, con su respectiva NavMesh para su correcta navegación.
 
 ## Planteamiento del problema
 **Las características principales del prototipo son:**
@@ -122,10 +122,7 @@ Los scripts usados para la gestión de estados del agente:
 * StateMachine
 * TransitionManager
 
-Adicionalmente, para la toma de métricas:
-* MetricsManager
-
-Para la implementación de la máquina de estados se ha visualizado esta como un **árbol** de tal forma que un diagrama de estados como el usado de ejemplo en la lección sobre máquinas de estados en el curso de Narratech[^5] se podría desplegar de esta forma:
+Para la implementación de la máquina de estados se ha visualizado e implementado esta como un **árbol** de tal forma que un diagrama de estados como el usado de ejemplo en la lección sobre máquinas de estados en el curso de Narratech[^5] se podría desplegar de esta forma:
 
 > [!IMPORTANT]
 > Todas las máquinas de estados de ejemplo mostradas antes del apartado [Diseño de los estados del bot prisionero](##Diseño-de-los-estados-del-bot-prisionero) sirven como apoyo para ejemplificar la implementación de la HFSM y en ningún caso como solución de diseño propuesta para los comportamientos del agente *Bot Prisionero*.
