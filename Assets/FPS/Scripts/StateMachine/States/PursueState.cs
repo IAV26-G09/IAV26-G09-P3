@@ -15,7 +15,7 @@ namespace HFSM
 
         protected override State GetTransition(BotGameplayActions a)
         {
-            if (a.Health != null && a.Health.CurrentHealth <= a.Health.CriticalHealthRatio)
+            if (a.Health != null && a.Health.IsCritical())
                 return FindTransition("Recover");
 
             if (!a.HasEnemyTarget())

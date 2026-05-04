@@ -19,3 +19,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5261ab575212a2a4aab8b6f12e18f361, type: 2}
   - {fileID: 11400000, guid: 888d0726b4cfe514b9d5c4e2187a1779, type: 2}
   - {fileID: 11400000, guid: dc7caec9434a2044dbc5ac23ac9db5d6, type: 2}
+  minPatrolRadius: 30

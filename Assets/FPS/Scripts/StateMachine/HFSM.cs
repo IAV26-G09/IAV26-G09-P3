@@ -102,6 +102,33 @@ public class FSM : MonoBehaviour
         return false;
     }
 
+    static public bool TryPickRandomNavMeshPointOutsideRadius(Vector3 origin, float radius, out Vector3 result)
+    {
+        Vector2 randomDir = Random.insideUnitCircle;
+        if (randomDir.sqrMagnitude < 0.0001f)
+            randomDir = Vector2.right;
+
+        randomDir.Normalize();
+        float distance = Random.Range(radius, radius * 2f);
+        Vector3 candidate = origin + new Vector3(randomDir.x, 0f, randomDir.y) * distance;
+
+        if (!NavMesh.SamplePosition(candidate, out var hit, 2.5f, NavMesh.AllAreas))
+        {
+            result = origin;
+            return false;
+        }
+
+        float sqrMin = radius * radius;
+        if ((hit.position - origin).sqrMagnitude < sqrMin)
+        {
+            result = origin;
+            return false;
+        }
+
+        result = hit.position;
+        return true;
+    }
+
     void InitializeStates()
     {
         var builder = new StateMachineBuilder(root);

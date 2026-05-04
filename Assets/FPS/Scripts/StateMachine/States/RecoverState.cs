@@ -6,7 +6,15 @@ namespace HFSM
     public class Recover : State
     {
         // el initial state de recover es runaway
-    }
+        protected override State GetTransition(BotGameplayActions a)
+        {
+            if (a.Health != null && a.Health.IsCritical())
+                return null;
 
-    
+           if (a.HasEnemyTarget())
+                return FindTransition("Engage");
+
+            return FindTransition("Patrol");
+        }
+    }
 }

@@ -5,6 +5,8 @@ namespace HFSM
     [CreateAssetMenu(menuName = "HSM/States/Patrol", fileName = "Patrol")]
     public class Patrol : State
     {
+        [SerializeField] float minPatrolRadius = 6f;
+
         protected override void OnEnter(BotGameplayActions a)
         {
             Debug.Log("ENTRANDO A PATROL");
@@ -12,7 +14,7 @@ namespace HFSM
 
         protected override State GetTransition(BotGameplayActions a)
         {
-            if (a.Health != null && a.Health.CurrentHealth <= a.Health.CriticalHealthRatio)
+            if (a.Health != null && a.Health.IsCritical())
             {
                 State e = FindTransition("Recover");
                 Debug.Log("VOY A RECOVER");
@@ -44,10 +46,9 @@ namespace HFSM
 
             if (!agent.hasPath || (agent.hasPath && actions.HasReachedCurrentDestination()))
             {
-                if (FSM.TryPickRandomNavMeshPoint(actions.transform.position, 20f, out var dest))
+                if (FSM.TryPickRandomNavMeshPointOutsideRadius(actions.transform.position, minPatrolRadius, out var dest))
                 {
                     Debug.Log("Nuevo punto de ruta");
-
                     actions.TryMoveToWorldPosition(dest);
                 }
             }
