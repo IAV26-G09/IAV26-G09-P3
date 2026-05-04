@@ -276,18 +276,30 @@ classDiagram
             +m_HasLastWorldPosForAnim : bool
         }
 
-    FSM <|-- NetworkBehaviour
+    FSM <|-- MonoBehaviour
     class FSM {
         +root : State
         +machine : StateMachine
         +Actions : BotGameplayActions
     }
 
+State <|-- ScriptableObject
       class State {
         +Machine : StateMachine Machine
         +Parent : State
         +ActiveChild : State
     }
+
+AliveState <|-- State
+AttackState <|-- State
+BotRoot <|-- State
+DeadState <|-- State
+EngageState <|-- State
+HealState <|-- State
+PatrolState <|-- State
+PursueState <|-- State
+RecoverState <|-- State
+RunAwayState <|-- State
 
       class StateMachine {
         +Root : State Root
@@ -309,12 +321,14 @@ Implementación: Se adjuntan los scripts con el código fuente que implementan l
 
 | Característica del prototipo | Descripción de la característica | Script |
 |:-:|:-:|:-:|
-| A | Cámaras | [GameFlowManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/Game/Managers/GameFlowManager.cs) |
-| B | Acciones del agente | [BotGameplayActions](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/BotGameplayActions.cs) |
-| D | Máquina de estados finita jerárquica | [FSM](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/FSM.cs) |
-| D | Máquina de estados finita jerárquica | [State](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/State.cs) |
-| D | Máquina de estados finita jerárquica | [StateMachine](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/StateMachine.cs) |
-| D | Máquina de estados finita jerárquica | [TransitionManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/TransitionManager.cs) |
+| A | Cámaras | [CameraCycler](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/Gameplay/CameraCycler.cs) |
+| B, C | Acciones del agente | [BotGameplayActions](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/BotGameplayActions.cs) |
+| C, D | Definición de los estados | [Carpeta con todos los estados](https://github.com/IAV26-G09/IAV26-G09-P3/tree/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/States) |
+| D | Máquina de estados finita jerárquica | [FSM](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/FSM.cs) |
+| D | Máquina de estados finita jerárquica | [State](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/State.cs) |
+| D | Máquina de estados finita jerárquica | [StateMachine](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/StateMachine.cs) |
+| D | Máquina de estados finita jerárquica | [TransitionManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/TransitionManager.cs) |
+| E | Toma de métricas | [MetricsManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/MetricsManager.cs) |
 
 Detallamos a continuación la información sobre las clases y prefabs más relevantes:
 
@@ -444,7 +458,7 @@ El primer contacto para entender los conceptos principales del grueso del proyec
 
 A la hora de implementar la máquina de estados finita jerárquica se ha hecho uso de repositorios de referencia para Unity públicos, como el de *Inspiaaa* con su librería de HFSM para Unity[^8] y especialmente el de *git-amend*[^9], que a su vez tomaba apunte de *Matt King*[^10] y *CrashKonijn*[^11].
 
-Se planea realizar la serialización de los estados a través de entender la implementación de para JSON de *Ryan Kurte*[^12].
+Se planea realizar la serialización de los estados a través de entender la implementación de JSON de *Ryan Kurte*[^12].
 
 [^1]: Unity, [*FPS Microgame*](https://learn.unity.com/course/microgames-learn-the-basics-of-unity/unit/fps-template).
 
