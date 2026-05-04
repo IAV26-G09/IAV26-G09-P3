@@ -77,6 +77,10 @@ public class BotGameplayActions : MonoBehaviour
     public Transform HealthTransform => m_HealthTransform;
     public Transform EnemyTransform => m_EnemyTransform;
 
+    // -------- HUIDA
+    private float m_Speed;
+    private float m_FleeSpeed;
+
     void Awake()
     {
         EventManager.AddListener<PickupEvent>(OnPickUp);
@@ -86,6 +90,9 @@ public class BotGameplayActions : MonoBehaviour
         m_Weapons = GetComponent<PlayerWeaponsManager>();
         m_NavMeshAgent = GetComponent<NavMeshAgent>();
         m_SphereCollider = GetComponent<SphereCollider>();
+
+        m_Speed = m_NavMeshAgent.speed;
+        m_FleeSpeed = (m_Speed * 10);
 
         m_Transform = GetComponent<Transform>();
 
@@ -327,12 +334,14 @@ public class BotGameplayActions : MonoBehaviour
 
                 if (lineal.magnitude > radioVision)
                 {
+                    m_NavMeshAgent.speed = m_Speed;
                     return false;
                 }
 
                 lineal.Normalize();
 
                 Vector3 fleeDestination = m_Transform.position + lineal * radioVision;
+                m_NavMeshAgent.speed = m_FleeSpeed;
                 TryMoveToWorldPosition(fleeDestination);
             }
         }

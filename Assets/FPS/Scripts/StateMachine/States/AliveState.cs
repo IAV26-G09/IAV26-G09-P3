@@ -24,7 +24,7 @@ namespace HSM
         {
             Debug.Log("ENTER ALIVE");
 
-            a.Health.CurrentHealth = 10;
+            //a.Health.CurrentHealth = 10;
         }
     }
 }
