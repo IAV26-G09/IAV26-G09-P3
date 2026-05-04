@@ -130,7 +130,8 @@ public class BotGameplayActions : MonoBehaviour
                 }
 
                 // si con lo que choca es enemy
-                if (hit.collider.GetComponent<EnemyController>() != null)
+                if (hit.collider.GetComponentInParent<EnemyController>() != null
+                    || hit.collider.GetComponent<EnemyController>() != null)
                 {
                     Debug.Log("veo enemigo, raycast a: " + hit.collider.gameObject.name);
 
@@ -323,6 +324,12 @@ public class BotGameplayActions : MonoBehaviour
             if (EnemyTransform != null)
             {
                 Vector3 lineal = m_Transform.position - EnemyTransform.transform.position;
+
+                if (lineal.magnitude > radioVision)
+                {
+                    return false;
+                }
+
                 lineal.Normalize();
 
                 Vector3 fleeDestination = m_Transform.position + lineal * radioVision;
