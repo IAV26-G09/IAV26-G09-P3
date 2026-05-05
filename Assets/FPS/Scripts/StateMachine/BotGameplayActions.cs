@@ -82,6 +82,10 @@ public class BotGameplayActions : MonoBehaviour
     private float m_Speed;
     private float m_FleeSpeed;
 
+    // -------- MUERTE
+    [SerializeField]
+    private Transform spawn;
+
     void Awake()
     {
         EventManager.AddListener<PickupEvent>(OnPickUp);
@@ -352,7 +356,7 @@ public class BotGameplayActions : MonoBehaviour
 
     public void Respawn()
     {
-        m_Transform.position = new Vector3(0, 2, -37);
+        m_Transform.position = spawn.position;
     }
 
     /// <summary>Ordena moverse hacia un punto del mundo (debe ser alcanzable por NavMesh).</summary>

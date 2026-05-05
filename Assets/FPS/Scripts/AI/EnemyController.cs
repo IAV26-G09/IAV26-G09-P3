@@ -118,6 +118,11 @@ namespace Unity.FPS.AI
         WeaponController[] m_Weapons;
         NavigationModule m_NavigationModule;
 
+        // -------- MUERTE
+        [SerializeField] private Transform[] m_spawns;
+
+        int currentSpawn = 0;
+
         void Start()
         {
             m_EnemyManager = FindAnyObjectByType<EnemyManager>();
@@ -364,7 +369,7 @@ namespace Unity.FPS.AI
             Destroy(vfx, 5f);
 
             // tells the game flow manager to handle the enemy destuction
-            m_EnemyManager.UnregisterEnemy(this);
+            //m_EnemyManager.UnregisterEnemy(this);
 
             // loot an object
             if (TryDropItem())
@@ -373,7 +378,12 @@ namespace Unity.FPS.AI
             }
 
             // this will call the OnDestroy function
-            Destroy(gameObject, DeathDuration);
+            //Destroy(gameObject, DeathDuration);
+            m_Health.CurrentHealth = m_Health.MaxHealth;
+
+            // respawn
+            transform.position = m_spawns[currentSpawn].position;
+            currentSpawn = (currentSpawn + 1) % m_spawns.Length;
         }
 
         void OnDrawGizmosSelected()
