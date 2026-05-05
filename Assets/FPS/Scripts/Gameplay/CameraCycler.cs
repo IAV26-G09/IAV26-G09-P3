@@ -4,7 +4,7 @@ public class CameraCycler : MonoBehaviour
 {
     private Unity.FPS.Gameplay.PlayerInputHandler m_PIH;
     private Camera[] m_Cameras;
-    int m_CamId = 1;
+    int m_CamId = 0;
     [SerializeField]
     private Camera firstCamera;
 
