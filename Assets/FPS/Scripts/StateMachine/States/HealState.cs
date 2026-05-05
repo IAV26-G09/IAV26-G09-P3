@@ -25,16 +25,28 @@ namespace HFSM
 
         protected override State GetTransition(BotGameplayActions a)
         {
-            //Debug.Log(a.Health.CurrentHealth + " " + pHealth);
+            State patrol = FindTransition("Patrol");
 
-            State e = Transitions.Find(x => x.stateName.Contains("Patrol"));
-
-            if (a.Health.CurrentHealth > pHealth || noHealing)
+            if (noHealing)
             {
-                Debug.Log("RECUPERADA");
                 noHealing = false;
                 a.SeesHealth = false;
-                return e;
+                return patrol;
+            }
+
+            bool healed = a.Health.CurrentHealth > pHealth;
+            bool hasHealthNearby = a.SeesHealth && a.HealthTransform != null;
+
+            if (healed && !hasHealthNearby)
+            {
+                Debug.Log("RECUPERADA, VUELVO A PATROL");
+                a.SeesHealth = false;
+                return patrol;
+            }
+
+            if (healed && hasHealthNearby)
+            {
+                pHealth = a.Health.CurrentHealth;
             }
 
             return null;

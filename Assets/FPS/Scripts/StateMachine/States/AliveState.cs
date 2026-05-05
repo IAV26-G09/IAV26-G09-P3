@@ -23,7 +23,7 @@ namespace HFSM
         protected override void OnEnter(BotGameplayActions a)
         {
             Debug.Log("ENTER ALIVE");
-
+            a.Sprint(true);
             //a.Health.CurrentHealth = 10;
         }
     }

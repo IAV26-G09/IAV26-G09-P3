@@ -71,12 +71,17 @@ public class BotGameplayActions : MonoBehaviour
 
     private Transform m_HealthTransform;
     private Transform m_EnemyTransform;
+    private Transform m_WeaponTransform;
 
     private bool m_SeesWeapon;
+    private bool m_WeaponPickedUp;
+    private bool m_LootRequest;
     public bool SeesWeapon => m_SeesWeapon;
+    public bool LootRequest => m_LootRequest;
 
     public Transform HealthTransform => m_HealthTransform;
     public Transform EnemyTransform => m_EnemyTransform;
+    public Transform WeaponTransform => m_WeaponTransform;
 
     // -------- HUIDA
     private float m_Speed;
@@ -108,7 +113,8 @@ public class BotGameplayActions : MonoBehaviour
     {
         // si es colision con algo que no nos interese no hace nada
         if (other.GetComponent<HealthPickup>() == null &&
-            other.GetComponent<EnemyController>() == null)
+            other.GetComponent<EnemyController>() == null &&
+            other.GetComponent<WeaponPickup>() == null)
         {
             return;
         }
@@ -157,6 +163,23 @@ public class BotGameplayActions : MonoBehaviour
                     SeesEnemy = false;
                     m_EnemyTransform = null;
                 }
+
+                bool otherIsWeapon = other.GetComponent<WeaponPickup>() != null;
+
+                // si con lo que choca es weapon pickup
+                if (hit.collider.GetComponentInParent<WeaponPickup>() != null
+                    || hit.collider.GetComponent<WeaponPickup>() != null)
+                {
+                    Debug.Log("veo arma");
+
+                    m_SeesWeapon = true;
+                    m_WeaponTransform = other.GetComponent<Transform>();
+                }
+                else if (otherIsWeapon)
+                {
+                    m_SeesWeapon = false;
+                    m_WeaponTransform = null;
+                }
             }
             else
             {
@@ -165,6 +188,12 @@ public class BotGameplayActions : MonoBehaviour
 
                 SeesEnemy = false;
                 m_EnemyTransform = null;
+
+                if (other.GetComponent<WeaponPickup>() != null)
+                {
+                    m_SeesWeapon = false;
+                    m_WeaponTransform = null;
+                }
             }
         }
     }
@@ -185,6 +214,11 @@ public class BotGameplayActions : MonoBehaviour
             SeesEnemy = false;
             m_EnemyTransform = null;
         }
+        else if (other.GetComponent<WeaponPickup>() != null)
+        {
+            m_SeesWeapon = false;
+            m_WeaponTransform = null;
+        }
     }
 
     void OnPickUp(PickupEvent evt)
@@ -192,6 +226,15 @@ public class BotGameplayActions : MonoBehaviour
         if (evt.Pickup.GetComponent<HealthPickup>() != null)
         {
             SeesHealth = false;
+        }
+
+        if (evt.Pickup.GetComponent<WeaponPickup>() != null)
+        {
+            bool wasTargetWeapon = m_WeaponTransform != null && evt.Pickup.transform == m_WeaponTransform;
+
+            m_SeesWeapon = false;
+            m_WeaponTransform = null;
+            m_WeaponPickedUp = wasTargetWeapon;
         }
     }
 
@@ -635,7 +678,46 @@ public class BotGameplayActions : MonoBehaviour
 
     public void FaceCurrentHealth()
     {
-        FaceTowardsWorldPoint(m_HealthTransform.position);
+        if (m_HealthTransform != null)
+            FaceTowardsWorldPoint(m_HealthTransform.position);
+    }
+
+    public void FaceCurrentWeapon()
+    {
+        if (m_WeaponTransform != null)
+            FaceTowardsWorldPoint(m_WeaponTransform.position);
+    }
+
+    public bool ResetWeaponPickedUp()
+    {
+        if (!m_WeaponPickedUp)
+            return false;
+
+        m_WeaponPickedUp = false;
+        return true;
+    }
+
+    public void RequestLoot()
+    {
+        m_LootRequest = true;
+    }
+
+    public void ClearLootRequest()
+    {
+        m_LootRequest = false;
+    }
+
+    public bool HasNearbyLoot()
+    {
+        bool hasWeaponLoot = m_SeesWeapon && m_WeaponTransform != null;
+        bool hasHealthLoot = SeesHealth && m_HealthTransform != null;
+        return hasWeaponLoot || hasHealthLoot;
+    }
+
+    public void ClearWeaponTarget()
+    {
+        m_SeesWeapon = false;
+        m_WeaponTransform = null;
     }
 
     public void ForgetEnemy()

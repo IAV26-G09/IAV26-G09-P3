@@ -10,7 +10,15 @@ namespace HFSM
         protected override void OnEnter(BotGameplayActions a)
         {
             Debug.Log("ENTRANDO A PATROL");
+            a.EnableNavMeshAgent();
             a.Sprint(true);
+
+            var agent = a.NavMeshAgent;
+            if (agent != null && agent.enabled)
+            {
+                agent.ResetPath();
+                agent.isStopped = false;
+            }
         }
 
         protected override State GetTransition(BotGameplayActions a)
@@ -32,6 +40,23 @@ namespace HFSM
                 }
             }
 
+            if (a.LootRequest)
+            {
+                if (a.HasNearbyLoot())
+                {
+                    State e = FindTransition("Loot");
+                    if (e != null)
+                    {
+                        Debug.Log("SALGO DE ENGAGE Y VOY A LOOT");
+                        return e;
+                    }
+                }
+                else
+                {
+                    a.ClearLootRequest();
+                }
+            }
+
             return null;
         }
 
@@ -40,7 +65,7 @@ namespace HFSM
             var agent = a.NavMeshAgent;
             if (agent == null || !agent.enabled || !agent.isOnNavMesh)
             {
-                Debug.Log("NO TENGO NAVMESH!!!!!!!!!!!!!!!");
+                Debug.Log("ERROR EN LA NAVMESH");
                 return;
             }
 

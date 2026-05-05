@@ -19,7 +19,12 @@ namespace HFSM
                 return FindTransition("Recover");
 
             if (!a.HasEnemyTarget())
+            {
+                if (a.SeesEnemy)
+                    return null;
+
                 return FindTransition("Patrol");
+            }
 
             if (a.CanAttackCurrentEnemy(attackRange))
                 return FindTransition("Attack");

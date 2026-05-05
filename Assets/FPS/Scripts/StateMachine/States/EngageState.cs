@@ -5,9 +5,13 @@ namespace HFSM
     [CreateAssetMenu(menuName = "HSM/States/Engage", fileName = "Engage")]
     public class Engage : State
     {
+        bool requestLootOnExit;
+
         protected override void OnEnter(BotGameplayActions a)
         {
             Debug.Log("ENTRANDO A ENGAGE");
+            requestLootOnExit = false;
+            a.ClearLootRequest();
         }
 
         protected override State GetInitialState()
@@ -17,6 +21,12 @@ namespace HFSM
 
         protected override void OnExit(BotGameplayActions a)
         {
+            if (requestLootOnExit)
+            {
+                a.RequestLoot();
+                requestLootOnExit = false;
+            }
+
             //a.SeesEnemy = false;
             a.ForgetEnemy();
         }
@@ -25,6 +35,7 @@ namespace HFSM
         {
             if (a.Health != null && a.Health.IsCritical())
             {
+                requestLootOnExit = false;
                 State e = FindTransition("Recover");
                 Debug.Log("VOY A RECOVER");
                 return e;
@@ -32,6 +43,10 @@ namespace HFSM
 
             if (!a.HasEnemyTarget())
             {
+                if (a.SeesEnemy)
+                    return null;
+
+                requestLootOnExit = true;
                 State e = FindTransition("Patrol");
                 if (e != null)
                 {

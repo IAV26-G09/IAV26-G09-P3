@@ -7,6 +7,10 @@ namespace HFSM
     {
         [SerializeField] float runAwayAngularSpeed = 720f;
         [SerializeField] float normalAngularSpeed = 120f;
+        [SerializeField] float runAwayAcceleration = 55f;
+
+        float m_PreviousAcceleration;
+        bool m_HasPreviousAcceleration;
 
         protected override void OnEnter(BotGameplayActions a)
         {
@@ -15,6 +19,9 @@ namespace HFSM
             if (a.NavMeshAgent != null)
             {
                 a.NavMeshAgent.angularSpeed = runAwayAngularSpeed;
+                m_PreviousAcceleration = a.NavMeshAgent.acceleration;
+                m_HasPreviousAcceleration = true;
+                a.NavMeshAgent.acceleration = Mathf.Max(m_PreviousAcceleration, runAwayAcceleration);
                 a.Sprint(true);
             }
         }
@@ -24,8 +31,13 @@ namespace HFSM
             if (a.NavMeshAgent != null)
             {
                 a.NavMeshAgent.angularSpeed = normalAngularSpeed;
+                if (m_HasPreviousAcceleration)
+                    a.NavMeshAgent.acceleration = m_PreviousAcceleration;
+
                 a.Sprint(false);
             }
+
+            m_HasPreviousAcceleration = false;
         }
 
         protected override void OnUpdate(BotGameplayActions a, float deltaTime)
