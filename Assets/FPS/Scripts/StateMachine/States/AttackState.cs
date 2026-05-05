@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HFSM
+namespace IAV26.G09.P3
 {
     [CreateAssetMenu(menuName = "HSM/States/Attack", fileName = "Attack")]
     public class Attack : State
@@ -63,10 +63,10 @@ namespace HFSM
 
             if (!a.HasEnemyTarget())
             {
-                if (a.SeesEnemy)
-                    return null;
+                if (a.HasKnownEnemy())
+                    return FindTransition("Pursue");
 
-                return FindTransition("Patrol");
+                return null;
             }
 
             if (!a.CanAttackCurrentEnemy(attackRange))
@@ -89,7 +89,21 @@ namespace HFSM
 
             int currentAmmo = weapon.GetCurrentAmmo();
             if (currentAmmo <= 0)
-                m_WaitingBurstRecharge = true;
+            {
+                if (a.TrySwitchToLoadedWeapon(minBurstAmmo))
+                {
+                    m_WaitingBurstRecharge = false;
+                    weapon = a.GetActiveWeaponOrNull();
+                    if (weapon == null)
+                        return;
+
+                    currentAmmo = weapon.GetCurrentAmmo();
+                }
+                else
+                {
+                    m_WaitingBurstRecharge = true;
+                }
+            }
 
             if (m_WaitingBurstRecharge)
             {

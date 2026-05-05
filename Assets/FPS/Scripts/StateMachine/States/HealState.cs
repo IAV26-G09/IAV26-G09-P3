@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HFSM
+namespace IAV26.G09.P3
 {
     [CreateAssetMenu(menuName = "HSM/States/Heal", fileName = "Heal")]
     public class Heal : State
@@ -12,6 +12,8 @@ namespace HFSM
         {
             Debug.Log("ENTRANDO A HEAL");
             pHealth = a.Health.CurrentHealth;
+            
+            a.Sprint(true);
 
             if (a.HealthTransform != null)
             {

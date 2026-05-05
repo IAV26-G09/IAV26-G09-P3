@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HFSM
+namespace IAV26.G09.P3
 {
     [CreateAssetMenu(menuName = "HSM/States/Engage", fileName = "Engage")]
     public class Engage : State
@@ -43,7 +43,7 @@ namespace HFSM
 
             if (!a.HasEnemyTarget())
             {
-                if (a.SeesEnemy)
+                if (a.HasKnownEnemy())
                     return null;
 
                 requestLootOnExit = true;

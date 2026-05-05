@@ -10,6 +10,8 @@ namespace Unity.FPS.Game
         [Tooltip("Health ratio at which the critical health vignette starts appearing")]
         public float CriticalHealthRatio = 0.5f;
 
+        [SerializeField] private bool IsPlayerHealth = false;
+
         public UnityAction<float, GameObject> OnDamaged;
         public UnityAction<float> OnHealed;
         public UnityAction OnDie;
@@ -80,7 +82,9 @@ namespace Unity.FPS.Game
 
                 CurrentHealth = MaxHealth;
 
-                EventManager.Broadcast(Events.PlayerDeathEvent);
+                if (IsPlayerHealth)
+                    EventManager.Broadcast(Events.PlayerDeathEvent);
+
                 OnDie?.Invoke();
             }
         }

@@ -369,7 +369,7 @@ namespace Unity.FPS.AI
             Destroy(vfx, 5f);
 
             // tells the game flow manager to handle the enemy destuction
-            //m_EnemyManager.UnregisterEnemy(this);
+            m_EnemyManager.UnregisterEnemy(this);
 
             // loot an object
             if (TryDropItem())

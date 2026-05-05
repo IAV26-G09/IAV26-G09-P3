@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HFSM
+namespace IAV26.G09.P3
 {
     [CreateAssetMenu(menuName = "HSM/States/Patrol", fileName = "Patrol")]
     public class Patrol : State
@@ -71,7 +71,7 @@ namespace HFSM
 
             if (!agent.hasPath || (agent.hasPath && a.HasReachedCurrentDestination()))
             {
-                if (FSM.TryPickRandomNavMeshPointOutsideRadius(a.transform.position, minPatrolRadius, out var dest))
+                if (HFSM.TryPickRandomNavMeshPointOutsideRadius(a.transform.position, minPatrolRadius, out var dest))
                 {
                     Debug.Log("Nuevo punto de ruta");
                     a.TryMoveToWorldPosition(dest);

@@ -1,7 +1,7 @@
-using HFSM;
+using IAV26.G09.P3;
 using UnityEngine;
 
-namespace HFSM
+namespace IAV26.G09.P3
 {
     [CreateAssetMenu(menuName = "HSM/States/Pursue", fileName = "Pursue")]
     public class Pursue : State
@@ -20,7 +20,7 @@ namespace HFSM
 
             if (!a.HasEnemyTarget())
             {
-                if (a.SeesEnemy)
+                if (a.HasKnownEnemy())
                     return null;
 
                 return FindTransition("Patrol");
@@ -34,7 +34,7 @@ namespace HFSM
 
         protected override void OnUpdate(BotGameplayActions a, float deltaTime)
         {
-            if (!a.HasEnemyTarget())
+            if (!a.HasKnownEnemy())
                 return;
 
             a.TryMoveToCurrentEnemy();

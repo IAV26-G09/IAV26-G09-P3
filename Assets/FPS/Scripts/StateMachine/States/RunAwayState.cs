@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HFSM
+namespace IAV26.G09.P3
 {
     [CreateAssetMenu(menuName = "HSM/States/RunAway", fileName = "RunAway")]
     public class RunAway : State
@@ -55,6 +55,12 @@ namespace HFSM
                 Debug.Log("VOY A HEAL");
                 State e = Transitions.Find(x => x.stateName.Contains("Heal"));
                 return e;
+            }
+
+            if (!a.SeesEnemy || !a.HasKnownEnemy())
+            {
+                Debug.Log("NO VEO ENEMIGO, VUELVO A PATROL");
+                return FindTransition("Patrol");
             }
 
             return null;

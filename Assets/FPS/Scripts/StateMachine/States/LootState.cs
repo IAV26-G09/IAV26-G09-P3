@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace HFSM
+namespace IAV26.G09.P3
 {
     [CreateAssetMenu(menuName = "HSM/States/Loot", fileName = "Loot")]
     public class Loot : State
@@ -19,7 +19,7 @@ namespace HFSM
         {
             State patrol = FindTransition("Patrol");
 
-            if (a.HasEnemyTarget())
+            if (a.SeesEnemy || a.HasEnemyTarget())
             {
                 State engage = FindTransition("Engage");
                 return engage != null ? engage : patrol;

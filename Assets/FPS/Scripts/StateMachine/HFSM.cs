@@ -19,20 +19,20 @@ using Random = UnityEngine.Random;
  *
  */
 
-namespace HFSM
+namespace IAV26.G09.P3
 {
 [RequireComponent(typeof(BotGameplayActions))]
 [DisallowMultipleComponent]
-public class FSM : MonoBehaviour
+public class HFSM : MonoBehaviour
 {
-    [Header("FSM — parámetros del ejemplo Wandering")]
+    [Header("HFSM — parámetros del ejemplo Wandering")]
     [Tooltip("Radio alrededor de la posición actual para elegir un nuevo punto aleatorio en NavMesh.")]
     [SerializeField] float m_WanderRadius = 25f;
 
     [Tooltip("Cada cuántos segundos, como máximo, se reconsidera el destino.")]
     [SerializeField] float m_RepathIntervalSeconds = 1.25f;
 
-    [Header("FSM — depuración")]
+    [Header("HFSM — depuración")]
     [SerializeField] bool m_LogStateTransitions;
 
     float m_NextRepathTime;

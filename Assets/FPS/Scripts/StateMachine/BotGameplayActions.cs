@@ -1,5 +1,5 @@
 using System;
-using HFSM;
+using IAV26.G09.P3;
 using NUnit.Framework.Internal;
 using Unity.FPS.AI;
 using Unity.FPS.Game;
@@ -11,7 +11,7 @@ using UnityEngine.AI;
 /// Gestor de acciones para el bot jugador (<c>UCM_Bot</c>).
 /// <para>
 /// Propósito: Ejemplo de clase que centraliza en un solo sitio llamadas con nombre claro ("ir aquí", "disparar",
-/// "cambiar arma", etc.) para que la <see cref="FSM"/> (u otra IA) no tenga que conocer todos los
+/// "cambiar arma", etc.) para que la <see cref="HFSM"/> (u otra IA) no tenga que conocer todos los
 /// detalles de <see cref="PlayerCharacterController"/>, <see cref="PlayerWeaponsManager"/>, etc.
 /// </para>
 /// <para>
@@ -161,7 +161,6 @@ public class BotGameplayActions : MonoBehaviour
                     Debug.Log("NO veo enemigo, raycast a: " + hit.collider.gameObject.name);
 
                     SeesEnemy = false;
-                    m_EnemyTransform = null;
                 }
 
                 bool otherIsWeapon = other.GetComponent<WeaponPickup>() != null;
@@ -187,7 +186,6 @@ public class BotGameplayActions : MonoBehaviour
                 m_HealthTransform = null;
 
                 SeesEnemy = false;
-                m_EnemyTransform = null;
 
                 if (other.GetComponent<WeaponPickup>() != null)
                 {
@@ -212,7 +210,6 @@ public class BotGameplayActions : MonoBehaviour
             Debug.Log("pierdo de vista");
 
             SeesEnemy = false;
-            m_EnemyTransform = null;
         }
         else if (other.GetComponent<WeaponPickup>() != null)
         {
@@ -323,7 +320,7 @@ public class BotGameplayActions : MonoBehaviour
     {
         // UCM_Bot desactiva PlayerCharacterController; el Animator no recibe Forward/Strafe. Replicamos
         // la idea del PCC usando la velocidad real del transform (válida en servidor y clientes vía red).
-        if (GetComponent<FSM>() == null)
+        if (GetComponent<HFSM>() == null)
             return;
 
         DriveThirdPersonLocomotionAnimator();
@@ -524,6 +521,33 @@ public class BotGameplayActions : MonoBehaviour
         m_Weapons.SwitchWeapon(ascendingOrder: false);
     }
 
+    public bool TrySwitchToLoadedWeapon(int minimumAmmo)
+    {
+        if (m_Weapons == null)
+            return false;
+
+        int currentSlot = m_Weapons.ActiveWeaponIndex;
+
+        for (int i = 0; i < 9; i++)
+        {
+            if (i == currentSlot)
+                continue;
+
+            var candidate = m_Weapons.GetWeaponAtSlotIndex(i);
+            if (candidate == null)
+                continue;
+
+            int ammo = candidate.GetCurrentAmmo();
+            if (ammo < minimumAmmo)
+                continue;
+
+            m_Weapons.SwitchToWeaponIndex(i);
+            return true;
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Disparo primario del arma activa usando la misma API que el input humano acaba llamando.
     /// Pasad los tres flags como en un botón: pulsación, mantener, soltar.
@@ -563,7 +587,7 @@ public class BotGameplayActions : MonoBehaviour
         public bool AimHeld;
     }
 
-    /// <summary>Buffer de intención que la FSM puede rellenar; integración con PCC pendiente.</summary>
+    /// <summary>Buffer de intención que la HFSM puede rellenar; integración con PCC pendiente.</summary>
     public LocomotionIntent BufferedLocomotion;
 
     /// <summary>Fija la intención de movimiento para un posible puente futuro con <see cref="PlayerInputHandler"/>.</summary>
@@ -609,6 +633,11 @@ public class BotGameplayActions : MonoBehaviour
 
         // SeesEnemy viene de trigger/raycast y puede fluctuar un frame; mantenemos validacion por LoS.
         return SeesEnemy || HasCurrentEnemySight(radioVision + 2f);
+    }
+
+    public bool HasKnownEnemy()
+    {
+        return GetCurrentEnemyController() != null;
     }
 
     public Vector3 GetCurrentEnemyAimPosition()

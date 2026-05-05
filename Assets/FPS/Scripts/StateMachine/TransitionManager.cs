@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HFSM
+namespace IAV26.G09.P3
 {
     public class TransitionManager // controla las transiciones entre nodos
     {

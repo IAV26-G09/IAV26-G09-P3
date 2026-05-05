@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace HFSM
+namespace IAV26.G09.P3
 {
-    public class StateMachine // gestiona el arbol de estados, lo contiene el monobehaviour FSM
+    public class StateMachine // gestiona el arbol de estados, lo contiene el monobehaviour HFSM
     {
         public readonly State Root; // referencia al estado raiz del arbol (H* en el diagrama de Millington)
         public readonly TransitionManager Transitions;
-        public FSM Owner;
+        public HFSM Owner;
 
         private bool started;
 

@@ -582,7 +582,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxHealth: 100
-  CriticalHealthRatio: 0.3
+  CriticalHealthRatio: 0.5
+  IsPlayerHealth: 1
 --- !u!114 &298744117520805562
 MonoBehaviour:
   m_ObjectHideFlags: 0
