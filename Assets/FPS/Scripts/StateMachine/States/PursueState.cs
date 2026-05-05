@@ -27,14 +27,13 @@ namespace HFSM
             return null;
         }
 
-        protected override void OnUpdate(StateMachine m, float deltaTime)
+        protected override void OnUpdate(BotGameplayActions a, float deltaTime)
         {
-            var actions = m.Owner.Actions;
-            if (!actions.HasEnemyTarget())
+            if (!a.HasEnemyTarget())
                 return;
 
-            actions.TryMoveToCurrentEnemy();
-            actions.FaceCurrentEnemy();
+            a.TryMoveToCurrentEnemy();
+            a.FaceCurrentEnemy();
         }
     }
 }

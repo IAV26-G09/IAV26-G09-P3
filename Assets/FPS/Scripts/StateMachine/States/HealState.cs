@@ -40,7 +40,7 @@ namespace HFSM
             return null;
         }
 
-        protected override void OnUpdate(StateMachine m, float deltaTime)
+        protected override void OnUpdate(BotGameplayActions a, float deltaTime)
         {
             
         }

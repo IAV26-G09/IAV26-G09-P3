@@ -34,6 +34,7 @@ public class BotGameplayActions : MonoBehaviour
     [SerializeField] float m_DefaultStoppingDistance = 1.5f;
 
     NavMeshAgent m_NavMeshAgent;
+
     PlayerCharacterController m_PlayerCc;
 
     Vector3 m_LastWorldPosForAnim;
@@ -92,7 +93,7 @@ public class BotGameplayActions : MonoBehaviour
         m_SphereCollider = GetComponent<SphereCollider>();
 
         m_Speed = m_NavMeshAgent.speed;
-        m_FleeSpeed = (m_Speed * 10);
+        m_FleeSpeed = (m_Speed * 2);
 
         m_Transform = GetComponent<Transform>();
 
@@ -341,7 +342,7 @@ public class BotGameplayActions : MonoBehaviour
                 lineal.Normalize();
 
                 Vector3 fleeDestination = m_Transform.position + lineal * radioVision;
-                m_NavMeshAgent.speed = m_FleeSpeed;
+                Sprint(true);
                 TryMoveToWorldPosition(fleeDestination);
             }
         }
@@ -628,8 +629,18 @@ public class BotGameplayActions : MonoBehaviour
         FaceTowardsWorldPoint(GetCurrentEnemyAimPosition());
     }
 
+    public void FaceCurrentHealth()
+    {
+        FaceTowardsWorldPoint(m_HealthTransform.position);
+    }
+
     public void ForgetEnemy()
     {
         m_EnemyTransform = null;
+    }
+
+    public void Sprint(bool s)
+    {
+        m_NavMeshAgent.speed = s ? m_FleeSpeed : m_Speed;
     }
 }

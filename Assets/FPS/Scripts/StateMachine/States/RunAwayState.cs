@@ -5,14 +5,32 @@ namespace HFSM
     [CreateAssetMenu(menuName = "HSM/States/RunAway", fileName = "RunAway")]
     public class RunAway : State
     {
+        [SerializeField] float runAwayAngularSpeed = 720f;
+        [SerializeField] float normalAngularSpeed = 120f;
+
         protected override void OnEnter(BotGameplayActions a)
         {
             Debug.Log("ENTRANDO A RUNAWAY");
+
+            if (a.NavMeshAgent != null)
+            {
+                a.NavMeshAgent.angularSpeed = runAwayAngularSpeed;
+                a.Sprint(true);
+            }
         }
 
-        protected override void OnUpdate(StateMachine m, float deltaTime)
+        protected override void OnExit(BotGameplayActions a)
         {
-            if (m.Owner.Actions.Flee())
+            if (a.NavMeshAgent != null)
+            {
+                a.NavMeshAgent.angularSpeed = normalAngularSpeed;
+                a.Sprint(false);
+            }
+        }
+
+        protected override void OnUpdate(BotGameplayActions a, float deltaTime)
+        {
+            if (a.Flee())
             {
                 //Debug.Log("HUYENDO");
             }

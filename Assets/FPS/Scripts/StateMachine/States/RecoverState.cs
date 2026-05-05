@@ -11,7 +11,7 @@ namespace HFSM
             if (a.Health != null && a.Health.IsCritical())
                 return null;
 
-           if (a.HasEnemyTarget())
+            if (a.HasEnemyTarget())
                 return FindTransition("Engage");
 
             return FindTransition("Patrol");

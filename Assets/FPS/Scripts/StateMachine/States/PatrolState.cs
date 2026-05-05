@@ -10,6 +10,7 @@ namespace HFSM
         protected override void OnEnter(BotGameplayActions a)
         {
             Debug.Log("ENTRANDO A PATROL");
+            a.Sprint(true);
         }
 
         protected override State GetTransition(BotGameplayActions a)
@@ -34,22 +35,21 @@ namespace HFSM
             return null;
         }
 
-        protected override void OnUpdate(StateMachine m, float deltaTime)
+        protected override void OnUpdate(BotGameplayActions a, float deltaTime)
         {
-            var actions = m.Owner.Actions;
-            var agent = actions.NavMeshAgent;
+            var agent = a.NavMeshAgent;
             if (agent == null || !agent.enabled || !agent.isOnNavMesh)
             {
                 Debug.Log("NO TENGO NAVMESH!!!!!!!!!!!!!!!");
                 return;
             }
 
-            if (!agent.hasPath || (agent.hasPath && actions.HasReachedCurrentDestination()))
+            if (!agent.hasPath || (agent.hasPath && a.HasReachedCurrentDestination()))
             {
-                if (FSM.TryPickRandomNavMeshPointOutsideRadius(actions.transform.position, minPatrolRadius, out var dest))
+                if (FSM.TryPickRandomNavMeshPointOutsideRadius(a.transform.position, minPatrolRadius, out var dest))
                 {
                     Debug.Log("Nuevo punto de ruta");
-                    actions.TryMoveToWorldPosition(dest);
+                    a.TryMoveToWorldPosition(dest);
                 }
             }
         }
