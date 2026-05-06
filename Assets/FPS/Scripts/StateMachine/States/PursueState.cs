@@ -38,7 +38,7 @@ namespace IAV26.G09.P3
                 return;
 
             a.TryMoveToCurrentEnemy();
-            a.FaceCurrentEnemy();
+            a.TryFaceEnemy();
         }
     }
 }

@@ -81,7 +81,7 @@ namespace IAV26.G09.P3
                 return;
 
             UpdateStrafeMovement(a, deltaTime);
-            a.FaceCurrentEnemy();
+            a.TryFaceEnemy();
 
             var weapon = a.GetActiveWeaponOrNull();
             if (weapon == null)
@@ -90,7 +90,8 @@ namespace IAV26.G09.P3
             int currentAmmo = weapon.GetCurrentAmmo();
             if (currentAmmo <= 0)
             {
-                if (a.TrySwitchToLoadedWeapon(minBurstAmmo))
+                Debug.Log("NO AMMO");
+                if (a.TrySwitchToLoadedWeapon(1))
                 {
                     m_WaitingBurstRecharge = false;
                     weapon = a.GetActiveWeaponOrNull();

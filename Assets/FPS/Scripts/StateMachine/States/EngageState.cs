@@ -27,6 +27,7 @@ namespace IAV26.G09.P3
                 requestLootOnExit = false;
             }
 
+            a.ResetView();
             //a.SeesEnemy = false;
             a.ForgetEnemy();
         }

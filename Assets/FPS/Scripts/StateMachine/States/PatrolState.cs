@@ -5,7 +5,7 @@ namespace IAV26.G09.P3
     [CreateAssetMenu(menuName = "HSM/States/Patrol", fileName = "Patrol")]
     public class Patrol : State
     {
-        [SerializeField] float minPatrolRadius = 6f;
+        int m_LastWaypointIndex = -1;
 
         protected override void OnEnter(BotGameplayActions a)
         {
@@ -19,6 +19,8 @@ namespace IAV26.G09.P3
                 agent.ResetPath();
                 agent.isStopped = false;
             }
+
+            //TryMoveToNextWaypoint(a);
         }
 
         protected override State GetTransition(BotGameplayActions a)
@@ -71,12 +73,45 @@ namespace IAV26.G09.P3
 
             if (!agent.hasPath || (agent.hasPath && a.HasReachedCurrentDestination()))
             {
-                if (HFSM.TryPickRandomNavMeshPointOutsideRadius(a.transform.position, minPatrolRadius, out var dest))
-                {
-                    Debug.Log("Nuevo punto de ruta");
-                    a.TryMoveToWorldPosition(dest);
-                }
+                TryMoveToNextWaypoint(a);
             }
+        }
+
+        bool TryMoveToNextWaypoint(BotGameplayActions a)
+        {
+            int waypointCount = a.GetPatrolWaypointCount();
+            if (waypointCount <= 0)
+                return false;
+
+            int attempts = waypointCount;
+            while (attempts-- > 0)
+            {
+                int waypointIndex = PickRandomWaypointIndex(waypointCount);
+                if (!a.TryGetPatrolWaypointPosition(waypointIndex, out var waypointPosition))
+                    continue;
+
+                if (!a.TryMoveToWorldPosition(waypointPosition))
+                    continue;
+
+                m_LastWaypointIndex = waypointIndex;
+                return true;
+            }
+
+            return false;
+        }
+
+        int PickRandomWaypointIndex(int waypointCount)
+        {
+            if (waypointCount <= 1)
+                return 0;
+
+            int index = Random.Range(0, waypointCount - 1);
+            if (m_LastWaypointIndex >= 0 && index >= m_LastWaypointIndex)
+            {
+                index++;
+            }
+
+            return index;
         }
     }
 }

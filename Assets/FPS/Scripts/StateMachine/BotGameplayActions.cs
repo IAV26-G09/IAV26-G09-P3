@@ -33,6 +33,7 @@ public class BotGameplayActions : MonoBehaviour
 
     [SerializeField] float m_DefaultStoppingDistance = 1.5f;
 
+    [SerializeField] Transform[] m_PatrolWaypoints;
     NavMeshAgent m_NavMeshAgent;
 
     PlayerCharacterController m_PlayerCc;
@@ -94,6 +95,7 @@ public class BotGameplayActions : MonoBehaviour
     void Awake()
     {
         EventManager.AddListener<PickupEvent>(OnPickUp);
+        EventManager.AddListener<EnemyKillEvent>(OnEnemyKilled);
 
         m_Health = GetComponent<Health>();
         m_PlayerCc = GetComponent<PlayerCharacterController>();
@@ -151,16 +153,28 @@ public class BotGameplayActions : MonoBehaviour
                 if (hit.collider.GetComponentInParent<EnemyController>() != null
                     || hit.collider.GetComponent<EnemyController>() != null)
                 {
-                    Debug.Log("veo enemigo, raycast a: " + hit.collider.gameObject.name);
+                    EnemyController seenEnemy = hit.collider.GetComponent<EnemyController>();
+                    if (seenEnemy == null)
+                        seenEnemy = hit.collider.GetComponent<EnemyController>();
 
-                    SeesEnemy = true;
-                    m_EnemyTransform = other.GetComponent<Transform>();
+                    if (seenEnemy != null)
+                    {
+                        if (m_EnemyTransform == null || m_EnemyTransform == seenEnemy.transform)
+                        {
+                            Debug.Log("veo enemigo, raycast a: " + hit.collider.gameObject.name);
+                            SeesEnemy = true;
+                            m_EnemyTransform = seenEnemy.transform;
+                        }
+                    }
                 }
                 else
                 {
-                    Debug.Log("NO veo enemigo, raycast a: " + hit.collider.gameObject.name);
-
-                    SeesEnemy = false;
+                    EnemyController otherEnemy = other.GetComponent<EnemyController>();
+                    if (otherEnemy != null && m_EnemyTransform == otherEnemy.transform)
+                    {
+                        Debug.Log("NO veo enemigo, raycast a: " + hit.collider.gameObject.name);
+                        SeesEnemy = false;
+                    }
                 }
 
                 bool otherIsWeapon = other.GetComponent<WeaponPickup>() != null;
@@ -185,7 +199,9 @@ public class BotGameplayActions : MonoBehaviour
                 SeesHealth = false;
                 m_HealthTransform = null;
 
-                SeesEnemy = false;
+                EnemyController otherEnemy = other.GetComponent<EnemyController>();
+                if (otherEnemy != null && m_EnemyTransform == otherEnemy.transform)
+                    SeesEnemy = false;
 
                 if (other.GetComponent<WeaponPickup>() != null)
                 {
@@ -206,10 +222,12 @@ public class BotGameplayActions : MonoBehaviour
 
         else if (other.GetComponent<EnemyController>() != null)
         {
-
-            Debug.Log("pierdo de vista");
-
-            SeesEnemy = false;
+            EnemyController otherEnemy = other.GetComponent<EnemyController>();
+            if (otherEnemy != null && m_EnemyTransform == otherEnemy.transform)
+            {
+                Debug.Log("pierdo de vista");
+                SeesEnemy = false;
+            }
         }
         else if (other.GetComponent<WeaponPickup>() != null)
         {
@@ -526,6 +544,9 @@ public class BotGameplayActions : MonoBehaviour
         if (m_Weapons == null)
             return false;
 
+        if (m_Weapons.WeaponSwitchDelay > 0f)
+            m_Weapons.WeaponSwitchDelay = 0f;
+
         int currentSlot = m_Weapons.ActiveWeaponIndex;
 
         for (int i = 0; i < 9; i++)
@@ -541,7 +562,7 @@ public class BotGameplayActions : MonoBehaviour
             if (ammo < minimumAmmo)
                 continue;
 
-            m_Weapons.SwitchToWeaponIndex(i);
+            m_Weapons.SwitchToWeaponIndex(i, true);
             return true;
         }
 
@@ -631,8 +652,7 @@ public class BotGameplayActions : MonoBehaviour
         if (enemy == null)
             return false;
 
-        // SeesEnemy viene de trigger/raycast y puede fluctuar un frame; mantenemos validacion por LoS.
-        return SeesEnemy || HasCurrentEnemySight(radioVision + 2f);
+        return HasCurrentEnemySight(radioVision);
     }
 
     public bool HasKnownEnemy()
@@ -645,6 +665,10 @@ public class BotGameplayActions : MonoBehaviour
         var enemy = GetCurrentEnemyController();
         if (enemy == null)
             return transform.position;
+
+        var actor = enemy.GetComponent<Actor>();
+        if (actor != null && actor.AimPoint != null)
+            return actor.AimPoint.position;
 
         return enemy.transform.position;
     }
@@ -688,7 +712,7 @@ public class BotGameplayActions : MonoBehaviour
         if (GetDistanceToCurrentEnemy() > maxRange)
             return false;
 
-        return HasCurrentEnemySight(maxRange + 2f);
+        return HasCurrentEnemySight(maxRange);
     }
 
     public bool TryMoveToCurrentEnemy()
@@ -700,9 +724,30 @@ public class BotGameplayActions : MonoBehaviour
         return TryMoveToWorldPosition(enemy.transform.position);
     }
 
-    public void FaceCurrentEnemy()
+    private void FaceCurrentEnemy()
     {
-        FaceTowardsWorldPoint(GetCurrentEnemyAimPosition());
+        Vector3 aimPoint = GetCurrentEnemyAimPosition();
+        FaceTowardsWorldPoint(aimPoint);
+        FaceViewTowardsWorldPoint(aimPoint);
+    }
+
+    public void TryFaceEnemy()
+    {
+        if (HasCurrentEnemySight(radioVision))
+        {
+            FaceCurrentEnemy();
+            return;
+        }
+
+        if (m_NavMeshAgent != null)
+        {
+            Vector3 moveDir = m_NavMeshAgent.desiredVelocity;
+            moveDir.y = 0f;
+            if (moveDir.sqrMagnitude > 0.0001f)
+                SetFacingDirection(moveDir);
+        }
+
+        ResetView();
     }
 
     public void FaceCurrentHealth()
@@ -752,10 +797,76 @@ public class BotGameplayActions : MonoBehaviour
     public void ForgetEnemy()
     {
         m_EnemyTransform = null;
+        SeesEnemy = false;
     }
 
     public void Sprint(bool s)
     {
         m_NavMeshAgent.speed = s ? m_FleeSpeed : m_Speed;
+    }
+
+    void FaceViewTowardsWorldPoint(Vector3 worldPoint)
+    {
+        if (m_PlayerCc == null || m_PlayerCc.PlayerCamera == null)
+            return;
+
+        Transform cameraTransform = m_PlayerCc.PlayerCamera.transform;
+        Vector3 dir = worldPoint - cameraTransform.position;
+        if (dir.sqrMagnitude < 0.0001f)
+            return;
+
+        Vector3 localDir = transform.InverseTransformDirection(dir.normalized);
+        float pitch = -Mathf.Atan2(localDir.y, localDir.z) * Mathf.Rad2Deg;
+
+        cameraTransform.localEulerAngles = new Vector3(pitch, 0f, 0f);
+    }
+
+    public void ResetView()
+    {
+        if (m_PlayerCc == null || m_PlayerCc.PlayerCamera == null)
+            return;
+
+        m_PlayerCc.PlayerCamera.transform.localEulerAngles = Vector3.zero;
+    }
+
+    public int GetPatrolWaypointCount()
+    {
+        return m_PatrolWaypoints.Length;
+    }
+
+    public bool TryGetPatrolWaypointPosition(int index, out Vector3 position)
+    {
+        position = transform.position;
+
+        if (m_PatrolWaypoints == null)
+            return false;
+
+        if (index < 0 || index >= m_PatrolWaypoints.Length)
+            return false;
+
+        var waypoint = m_PatrolWaypoints[index];
+        if (waypoint == null)
+            return false;
+
+        position = waypoint.position;
+        return true;
+    }
+
+    void OnEnemyKilled(EnemyKillEvent evt)
+    {
+        if (evt == null || evt.Enemy == null || m_EnemyTransform == null)
+            return;
+
+        EnemyController currentEnemy = GetCurrentEnemyController();
+        if (currentEnemy == null)
+        {
+            ForgetEnemy();
+            return;
+        }
+
+        if (evt.Enemy == currentEnemy.gameObject)
+        {
+            ForgetEnemy();
+        }
     }
 }

@@ -21,3 +21,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e4fa278076ae060448ab86c1e3fb3a13, type: 2}
   - {fileID: 11400000, guid: 888d0726b4cfe514b9d5c4e2187a1779, type: 2}
   attackRange: 14
+  minBurstAmmo: 4
+  strafeDistance: 2.5
+  strafeMinTime: 0.5
+  strafeMaxTime: 0.75
+  strafeForwardJitter: 0.75
+  strafeAcceleration: 40

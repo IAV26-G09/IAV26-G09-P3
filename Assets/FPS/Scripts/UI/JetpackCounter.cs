@@ -28,13 +28,13 @@ namespace Unity.FPS.UI
 
         void Update()
         {
-            MainCanvasGroup.gameObject.SetActive(m_Jetpack.IsJetpackUnlocked);
+            //MainCanvasGroup.gameObject.SetActive(m_Jetpack.IsJetpackUnlocked);
 
-            if (m_Jetpack.IsJetpackUnlocked)
-            {
-                JetpackFillImage.fillAmount = m_Jetpack.CurrentFillRatio;
-                FillBarColorChange.UpdateVisual(m_Jetpack.CurrentFillRatio);
-            }
+            //if (m_Jetpack.IsJetpackUnlocked)
+            //{
+            //    JetpackFillImage.fillAmount = m_Jetpack.CurrentFillRatio;
+            //    FillBarColorChange.UpdateVisual(m_Jetpack.CurrentFillRatio);
+            //}
         }
     }
 }
