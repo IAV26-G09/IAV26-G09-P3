@@ -14,8 +14,6 @@ namespace IAV26.G09.P3
 
         protected override void OnEnter(BotGameplayActions a)
         {
-            Debug.Log("ENTRANDO A RUNAWAY");
-
             if (a.NavMeshAgent != null)
             {
                 a.NavMeshAgent.angularSpeed = runAwayAngularSpeed;
@@ -24,6 +22,11 @@ namespace IAV26.G09.P3
                 a.NavMeshAgent.acceleration = Mathf.Max(m_PreviousAcceleration, runAwayAcceleration);
                 a.Sprint(true);
             }
+        }
+
+        protected override void OnUpdate(BotGameplayActions a, float deltaTime)
+        {
+            a.Flee();
         }
 
         protected override void OnExit(BotGameplayActions a)
@@ -40,26 +43,16 @@ namespace IAV26.G09.P3
             m_HasPreviousAcceleration = false;
         }
 
-        protected override void OnUpdate(BotGameplayActions a, float deltaTime)
-        {
-            if (a.Flee())
-            {
-                //Debug.Log("HUYENDO");
-            }
-        }
-
         protected override State GetTransition(BotGameplayActions a)
         {
             if (a.SeesHealth)
             {
-                Debug.Log("VOY A HEAL");
                 State e = Transitions.Find(x => x.stateName.Contains("Heal"));
                 return e;
             }
 
             if (!a.SeesEnemy || !a.HasKnownEnemy())
             {
-                Debug.Log("NO VEO ENEMIGO, VUELVO A PATROL");
                 return FindTransition("Patrol");
             }
 

@@ -1,40 +1,42 @@
 using UnityEngine;
 
-public class CameraCycler : MonoBehaviour
+namespace IAV26.G09.P3
 {
-    private Unity.FPS.Gameplay.PlayerInputHandler m_PIH;
-    private Camera[] m_Cameras;
-    int m_CamId = 0;
-    [SerializeField]
-    private Camera firstCamera;
-
-    void Start()
+    public class CameraCycler : MonoBehaviour
     {
-        m_PIH = GetComponent<Unity.FPS.Gameplay.PlayerInputHandler>();
+        private Unity.FPS.Gameplay.PlayerInputHandler m_PIH;
+        private Camera[] m_Cameras;
+        int m_CamId = 0;
+        [SerializeField] private Camera firstCamera;
 
-        GameObject[] cameraObjects = GameObject.FindGameObjectsWithTag("MainCamera");
-        m_Cameras = new Camera[cameraObjects.Length];
-        for (int i = 0; i < cameraObjects.Length; i++)
+        void Start()
         {
-            m_Cameras[i] = cameraObjects[i].GetComponent<Camera>();
-            m_Cameras[i].enabled = false;
+            m_PIH = GetComponent<Unity.FPS.Gameplay.PlayerInputHandler>();
+
+            GameObject[] cameraObjects = GameObject.FindGameObjectsWithTag("MainCamera");
+            m_Cameras = new Camera[cameraObjects.Length];
+            for (int i = 0; i < cameraObjects.Length; i++)
+            {
+                m_Cameras[i] = cameraObjects[i].GetComponent<Camera>();
+                m_Cameras[i].enabled = false;
+            }
+
+            if (firstCamera != null)
+                firstCamera.enabled = true;
         }
 
-        if (firstCamera != null)
-            firstCamera.enabled = true;
-    }
+        private void CycleCamera()
+        {
+            m_Cameras[m_CamId].enabled = false;
+            m_CamId = (m_CamId + 1) % m_Cameras.Length;
+            m_Cameras[m_CamId].enabled = true;
+        }
 
-    private void CycleCamera()
-    {
-        m_Cameras[m_CamId].enabled = false;
-        m_CamId = (m_CamId + 1) % m_Cameras.Length;
-        m_Cameras[m_CamId].enabled = true;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (m_PIH && m_PIH.GetChangeCameraDown() && m_Cameras.Length > 0)
-            CycleCamera();
+        void Update()
+        {
+            // gestiona el ciclo de camara
+            if (m_PIH && m_PIH.GetChangeCameraDown() && m_Cameras.Length > 0)
+                CycleCamera();
+        }
     }
 }

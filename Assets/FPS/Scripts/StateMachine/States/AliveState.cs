@@ -7,8 +7,6 @@ namespace IAV26.G09.P3
     {
         protected override State GetTransition(BotGameplayActions a)
         {
-            //Debug.Log(a.Health.CurrentHealth);
-
             if (a.Health.HasDied)
             {
                 a.Health.HasDied = false;
@@ -22,9 +20,7 @@ namespace IAV26.G09.P3
 
         protected override void OnEnter(BotGameplayActions a)
         {
-            Debug.Log("ENTER ALIVE");
             a.Sprint(true);
-            //a.Health.CurrentHealth = 10;
         }
     }
 }

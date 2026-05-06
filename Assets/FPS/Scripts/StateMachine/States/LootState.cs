@@ -9,7 +9,6 @@ namespace IAV26.G09.P3
 
         protected override void OnEnter(BotGameplayActions a)
         {
-            Debug.Log("ENTRANDO A LOOT");
             a.ClearLootRequest();
 
             lootingWeapon = a.SeesWeapon && a.WeaponTransform != null;

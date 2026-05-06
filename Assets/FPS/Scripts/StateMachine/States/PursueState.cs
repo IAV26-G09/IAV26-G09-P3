@@ -8,11 +8,6 @@ namespace IAV26.G09.P3
     {
         [SerializeField] float attackRange = 14f;
 
-        protected override void OnEnter(BotGameplayActions a)
-        {
-            Debug.Log("ENTRANDO A PURSUE");
-        }
-
         protected override State GetTransition(BotGameplayActions a)
         {
             if (a.Health != null && a.Health.IsCritical())

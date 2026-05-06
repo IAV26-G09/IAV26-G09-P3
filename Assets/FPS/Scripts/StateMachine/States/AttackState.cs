@@ -29,7 +29,6 @@ namespace IAV26.G09.P3
 
         protected override void OnEnter(BotGameplayActions a)
         {
-            Debug.Log("ENTER ATTACK");
             a.EnableNavMeshAgent();
 
             m_WaitingBurstRecharge = false;
@@ -90,7 +89,6 @@ namespace IAV26.G09.P3
             int currentAmmo = weapon.GetCurrentAmmo();
             if (currentAmmo <= 0)
             {
-                Debug.Log("NO AMMO");
                 if (a.TrySwitchToLoadedWeapon(1))
                 {
                     m_WaitingBurstRecharge = false;

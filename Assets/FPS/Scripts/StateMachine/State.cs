@@ -4,18 +4,6 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-/*
- * Se trata como un arbol:
- *
- *            STATEMACHINE
- *             /        \
- *         paseo        emergencia
- *         / 
- *     idle
- *
- * (ejemplo de arbol como el que esta ahora mismo hardcodeado en fsm)
- */
-
 namespace IAV26.G09.P3
 {
     public abstract class State : ScriptableObject // nodo en la maquina de estados
@@ -36,14 +24,13 @@ namespace IAV26.G09.P3
 
         protected virtual State GetInitialState() => _initialState; // con que estado hijo empezar cuando se entre a este estado (si es nulo soy hoja)
         protected virtual State GetTransition(BotGameplayActions a) => null; // si quiero transicionar devuelve el estado al que quiero ir (si es nulo me quedo)
-        // Para buscar en la lista de transiciones, ej:
-        // State e = Transitions.Find(x => x.stateName.Contains("LootState"));
 
         // Metodos basicos de un estado
         protected virtual void OnEnter(BotGameplayActions a) {}
         protected virtual void OnExit(BotGameplayActions a) {}
         protected virtual void OnUpdate(BotGameplayActions a, float deltaTime) {}
 
+        // Para buscar en la lista de transiciones
         protected State FindTransition(string containsName)
         {
             return Transitions.Find(x => x != null && x.stateName.Contains(containsName));

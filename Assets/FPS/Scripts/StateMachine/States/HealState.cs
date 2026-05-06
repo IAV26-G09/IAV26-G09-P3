@@ -10,7 +10,6 @@ namespace IAV26.G09.P3
 
         protected override void OnEnter(BotGameplayActions a)
         {
-            Debug.Log("ENTRANDO A HEAL");
             pHealth = a.Health.CurrentHealth;
             
             a.Sprint(true);
@@ -41,7 +40,6 @@ namespace IAV26.G09.P3
 
             if (healed && !hasHealthNearby)
             {
-                Debug.Log("RECUPERADA, VUELVO A PATROL");
                 a.SeesHealth = false;
                 return patrol;
             }
@@ -52,11 +50,6 @@ namespace IAV26.G09.P3
             }
 
             return null;
-        }
-
-        protected override void OnUpdate(BotGameplayActions a, float deltaTime)
-        {
-            
         }
     }
 }

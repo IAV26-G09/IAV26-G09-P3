@@ -8,50 +8,28 @@ using UnityEngine.AI;
 using UnityEngine.LowLevel;
 using Random = UnityEngine.Random;
 
-/*
- * Se trata como un arbol:
- * 
- *             STATEMACHINE
- *             /          \
- *         paseo         combat
- *         /   \           ...
- *     idle   moving   
- *
- */
-
 namespace IAV26.G09.P3
 {
 [RequireComponent(typeof(BotGameplayActions))]
 [DisallowMultipleComponent]
 public class HFSM : MonoBehaviour
 {
-    [Header("HFSM — parámetros del ejemplo Wandering")]
-    [Tooltip("Radio alrededor de la posición actual para elegir un nuevo punto aleatorio en NavMesh.")]
-    [SerializeField] float m_WanderRadius = 25f;
-
-    [Tooltip("Cada cuántos segundos, como máximo, se reconsidera el destino.")]
-    [SerializeField] float m_RepathIntervalSeconds = 1.25f;
-
-    [Header("HFSM — depuración")]
+    [Header("HFSM — Depuración")]
     [SerializeField] bool m_LogStateTransitions;
 
-    float m_NextRepathTime;
-
-    Health m_Health;
-    BotGameplayActions m_Actions;
-
-    // HFSM
+    [Header("HFSM — Estado raíz")]
     [SerializeField]
     private State root;
 
     private StateMachine machine;
     private string lastPath;
 
+    BotGameplayActions m_Actions;
     public BotGameplayActions Actions => m_Actions;
 
-    // ---------------------------------------------------------------------------------------------
-    // Ciclo de vida red / componentes
-    // ---------------------------------------------------------------------------------------------
+    // --------------------------------------
+    // Ciclo de vida componentes
+    // --------------------------------------
     void Awake()
     {
         m_Actions = GetComponent<BotGameplayActions>();
@@ -62,9 +40,9 @@ public class HFSM : MonoBehaviour
         InitializeStates();
     }
 
-    // ---------------------------------------------------------------------------------------------
+    // --------------------------------------
     // Máquina de estados — Nucleo de la IA.
-    // ---------------------------------------------------------------------------------------------
+    // --------------------------------------
     void Update()
     {
         if (machine != null)
@@ -80,53 +58,6 @@ public class HFSM : MonoBehaviour
                 lastPath = path;
             }
         }
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    // Utilidades NavMesh (podrían moverse a BotGameplayActions si preferís no tener nada de lógica aquí)
-    // ---------------------------------------------------------------------------------------------
-    static public bool TryPickRandomNavMeshPoint(Vector3 origin, float radius, out Vector3 result)
-    {
-        for (int i = 0; i < 20; i++)
-        {
-            var rnd = Random.insideUnitSphere * radius;
-            var candidate = origin + rnd;
-            if (NavMesh.SamplePosition(candidate, out var hit, 2.0f, NavMesh.AllAreas))
-            {
-                result = hit.position;
-                return true;
-            }
-        }
-
-        result = origin;
-        return false;
-    }
-
-    static public bool TryPickRandomNavMeshPointOutsideRadius(Vector3 origin, float radius, out Vector3 result)
-    {
-        Vector2 randomDir = Random.insideUnitCircle;
-        if (randomDir.sqrMagnitude < 0.0001f)
-            randomDir = Vector2.right;
-
-        randomDir.Normalize();
-        float distance = Random.Range(radius, radius * 2f);
-        Vector3 candidate = origin + new Vector3(randomDir.x, 0f, randomDir.y) * distance;
-
-        if (!NavMesh.SamplePosition(candidate, out var hit, 2.5f, NavMesh.AllAreas))
-        {
-            result = origin;
-            return false;
-        }
-
-        float sqrMin = radius * radius;
-        if ((hit.position - origin).sqrMagnitude < sqrMin)
-        {
-            result = origin;
-            return false;
-        }
-
-        result = hit.position;
-        return true;
     }
 
     void InitializeStates()

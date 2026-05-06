@@ -9,7 +9,6 @@ namespace IAV26.G09.P3
 
         protected override void OnEnter(BotGameplayActions a)
         {
-            Debug.Log("ENTRANDO A PATROL");
             a.EnableNavMeshAgent();
             a.Sprint(true);
 
@@ -19,8 +18,6 @@ namespace IAV26.G09.P3
                 agent.ResetPath();
                 agent.isStopped = false;
             }
-
-            //TryMoveToNextWaypoint(a);
         }
 
         protected override State GetTransition(BotGameplayActions a)
@@ -28,7 +25,6 @@ namespace IAV26.G09.P3
             if (a.Health != null && a.Health.IsCritical())
             {
                 State e = FindTransition("Recover");
-                Debug.Log("VOY A RECOVER");
                 return e;
             }
 
@@ -37,7 +33,6 @@ namespace IAV26.G09.P3
                 State e = FindTransition("Engage");
                 if (e != null)
                 {
-                    Debug.Log("VOY A ENGAGE");
                     return e;
                 }
             }

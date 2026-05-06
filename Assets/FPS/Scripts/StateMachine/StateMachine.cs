@@ -22,8 +22,6 @@ namespace IAV26.G09.P3
         {
             if (started) return;
 
-            Debug.Log("START STATEMACHINE");
-
             started = true;
 
             Root.Enter(Owner.Actions); // para entrar por primera vez
