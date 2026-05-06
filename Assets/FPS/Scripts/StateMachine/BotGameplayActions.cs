@@ -598,6 +598,28 @@ namespace IAV26.G09.P3
             SeesEnemy = false;
         }
 
+        public void ResetStateOnDead()
+        {
+            SeesHealth = false;
+            SeesEnemy = false;
+            m_SeesWeapon = false;
+
+            m_HealthTransform = null;
+            m_EnemyTransform = null;
+            m_WeaponTransform = null;
+
+            m_WeaponPickedUp = false;
+            m_LootRequest = false;
+
+            ResetView();
+
+            if (m_NavMeshAgent != null && m_NavMeshAgent.enabled)
+            {
+                m_NavMeshAgent.ResetPath();
+                m_NavMeshAgent.isStopped = false;
+            }
+        }
+
         public void Sprint(bool s)
         {
             m_NavMeshAgent.speed = s ? m_FleeSpeed : m_Speed;

@@ -7,7 +7,7 @@ namespace IAV26.G09.P3
     {
         protected override void OnEnter(BotGameplayActions a)
         {
-            Debug.Log("ENTER DEAD");
+            a.ResetStateOnDead();
         }
     }
 }
