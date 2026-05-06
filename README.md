@@ -406,10 +406,6 @@ Serie corta y rápida posible de pruebas que pueden realizarse para verificar qu
 * **6 (E).** Observar en la interfaz de usuario las distintas métricas tomadas en tiempo real sobre las estadísticas del agente.
 * **7 (A, B, C, D, E).** Pulsar tecla Escape y volver a inicar la observación desde el paso 1.
 
-Las métricas que se tomarán serán:
-- El ratio de enemigos eliminados/veces que el bot ha sido eliminado en el contexto de una partida que dura X segundos y mantiene un ratio estable de Y fotogramas por segundo.
-
-<!--
 ### Métricas tomadas
 En un PC de estas características:
 - **CPU:** AMD Ryzen 7 5700G a 3.80 GHz
@@ -419,7 +415,17 @@ En un PC de estas características:
 - **Versión de Unity:** 6000.0.66f2
 
 Se han tomado las siguientes métricas:
--->
+- Ratio de enemigos eliminados/veces que el bot ha sido eliminado en el contexto de una partida que dura 60 segundos y mantiene un ratio estable de 60 fotogramas por segundo. En la partida se enfrentan el agente desarrollado durante la práctica contra un *HoverBot* y un *Turret*, los agentes con navegación se recolocan tras morir en puntos aleatorios del mapa para mayor precisión en la toma de métricas.
+
+```mermaid
+xychart-beta
+    title "Media de: Enemigos eliminados (asesinatos) - Veces que ha sido eliminado (muertes)"
+    x-axis [Asesinatos, Muertes]
+    y-axis "Media" 0 --> 10
+    bar [6, 1]
+```
+
+Este ratio en partida aumenta o disminye principalmente en función de dónde aparezca al inicio de la partida, se observa que en las partidas en las que aparece más veces en la sala donde se encuentra el enemigo *Turret* ya que este es más poderoso y al agente le cuesta más enfrentarse a él.
 
 ### Vídeo
 - Próximamente
