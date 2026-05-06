@@ -464,7 +464,7 @@ Este ratio en partida aumenta o disminye principalmente en función de dónde ap
 
 ### Vídeo
 - Próximamente
-<!-- - [Vídeo demostración]() -->
+- [Vídeo demostración](https://www.youtube.com/watch?v=wYVlIFyWK8Y)
 
 ## Ampliaciones
 Se han pensado las siguientes posibles ampliaciones: 

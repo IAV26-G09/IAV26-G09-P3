@@ -36,6 +36,7 @@ namespace Unity.FPS.Gameplay
         private InputAction m_NextWeaponAction;
         private InputAction m_ChangeCameraAction;
         private InputAction m_ChangeFrameRateAction;
+        private InputAction m_QuitGame;
 
         [SerializeField]
         private bool botMode;
@@ -62,6 +63,7 @@ namespace Unity.FPS.Gameplay
             m_NextWeaponAction = InputSystem.actions.FindAction("Player/NextWeapon");
             m_ChangeCameraAction = InputSystem.actions.FindAction("Player/ChangeCamera");
             m_ChangeFrameRateAction = InputSystem.actions.FindAction("Player/ChangeCamera");
+            m_QuitGame = InputSystem.actions.FindAction("Player/Quit");
             
             if (!botMode)
             {
@@ -74,7 +76,6 @@ namespace Unity.FPS.Gameplay
                 m_CrouchAction.Enable();
                 m_ReloadAction.Enable();
                 m_NextWeaponAction.Enable();
-                m_ChangeCameraAction.Enable();
             }
             else
             {
@@ -87,16 +88,20 @@ namespace Unity.FPS.Gameplay
                 m_CrouchAction.Disable();
                 m_ReloadAction.Disable();
                 m_NextWeaponAction.Disable();
-
-                m_ChangeCameraAction.Enable();
-                m_ChangeFrameRateAction.Enable();
-                //m_ChangeCameraAction.Disable();
             }
+
+            m_ChangeCameraAction.Enable();
+            m_ChangeFrameRateAction.Enable();
+            m_QuitGame.Enable();
         }
 
         void LateUpdate()
         {
             m_FireInputWasHeld = GetFireInputHeld();
+            if (m_QuitGame.WasPressedThisFrame())
+            {
+                UnityEngine.SceneManagement.SceneManager.LoadScene("FPS/Scenes/IntroMenu");
+            }
         }
 
         public bool CanProcessInput()

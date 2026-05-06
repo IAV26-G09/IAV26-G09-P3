@@ -22,7 +22,7 @@ namespace IAV26.G09.P3
 
         protected override State GetTransition(BotGameplayActions a)
         {
-            if (a.Health != null && a.Health.IsCritical())
+            if (a.Health != null && a.Health.IsCritical() && a.SeesHealth)
             {
                 State e = FindTransition("Recover");
                 return e;
