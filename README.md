@@ -9,6 +9,8 @@
   - Actualizados según el cambio del enunciado.
 - [Diseño de la solución](#diseño-de-la-solución)
   - Ampliada y clarificada la explicación sobre el diseño de la solución.
+- [Pruebas y métricas](#pruebas-y-métricas)
+  - Rellenada sección de métricas y vídeo.
 
 ## Índice
 1. [Autores](#autores)
@@ -117,7 +119,7 @@ Para la implementación del proyecto son relevantes dos escenas:
 ### Diseño de la implementación de la máquina de estados
 Los scripts usados para la gestión de estados del agente:
 * BotGameplayActions
-* FSM
+* HFSM
 * State
 * StateMachine
 * TransitionManager
@@ -166,7 +168,7 @@ stateDiagram
       Combate --> Disparar
 ```
 
-La máquina de estados, [*StateMachine*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/StateMachine.cs), almacena una referencia al nodo raíz del árbol, será el primer nodo al que se entre al iniciar la máquina y con ello el *mecanismo* empieza a funcionar. La gestión de la ejecución de esta se delega en la clase [*FSM*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/FSM.cs) la cual se hace responsable de llamar al método *Tick(deltaTime)* de la *StateMachine*.
+La máquina de estados, [*StateMachine*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/StateMachine.cs), almacena una referencia al nodo raíz del árbol, será el primer nodo al que se entre al iniciar la máquina y con ello el *mecanismo* empieza a funcionar. La gestión de la ejecución de esta se delega en la clase [*HFSM*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/HFSM.cs) la cual se hace responsable de llamar al método *Tick(deltaTime)* de la *StateMachine*.
 
 Cada nodo en el árbol máquina de estados es entonces un estado, [*State*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/State.cs), con los métodos básicos:
 * *OnEnter()*: Método que se ejecuta al entrar al estado.
@@ -241,8 +243,24 @@ direction LR
     Alive --> Dead
     Dead --> Alive
 
-``` 
+```
 
+#### BotRoot
+
+#### AliveState
+#### DeadState
+
+#### PatrolState
+
+#### EngageState
+#### PursueState
+#### AttackState
+
+#### RecoverState
+#### RunAwayState
+#### HealState
+
+#### LootState
 
 ## Implementación
 **Tareas:**
@@ -253,16 +271,28 @@ Las tareas y el esfuerzo ha sido repartido de manera equitativa entre las autora
 | ✔ | Organización del proyecto | 15-4-2026 |
 | ✔ | Máquina de estados base | 18-4-2026 |
 | ✔ | Manager de transiciones de estados | 18-4-2026 |
-| ✔ | Máquina de estados enlazada con FSM | 18-4-2026 |
-| ✔ | FSM enlazada con BotGameplayActions | 19-4-2026 |
+| ✔ | Máquina de estados enlazada con HFSM | 18-4-2026 |
+| ✔ | HFSM enlazada con BotGameplayActions | 19-4-2026 |
 | ✔ | Cámara top down | 19-4-2026 |
 | ✔ | Organización del proyecto | 15-4-2026 |
 | ✔ | README | 23-4-2026 |
+| ✔ | Estados scriptable objects | 27-4-2026 |
+| ✔ | Cambio a la nueva plantilla | 30-4-2026 |
+| ✔ | HUD métricas | 3-5-2026 |
+| ✔ | Implementación de las acciones | 5-5-2026 |
+| ✔ | Implementación de los estados | 5-5-2026 |
+| ✔ | Transiciones entre estados | 6-4-2026 |
+| ✔ | Vídeo | 6-4-2026 |
+| ✔ | README | 7-4-2026 |
 
 **Diagrama de clases:**
 Las clases principales que se han desarrollados son las siguientes:
 ```mermaid
 classDiagram
+      MetricsManager <|-- MonoBehaviour
+
+      CameraCycler <|-- MonoBehaviour
+
       BotGameplayActions <|-- MonoBehaviour
         class BotGameplayActions {
             +m_NavMeshAgent : NavMeshAgent
@@ -273,8 +303,8 @@ classDiagram
             +m_HasLastWorldPosForAnim : bool
         }
 
-    FSM <|-- MonoBehaviour
-    class FSM {
+    HFSM <|-- MonoBehaviour
+    class HFSM {
         +root : State
         +machine : StateMachine
         +Actions : BotGameplayActions
@@ -285,6 +315,9 @@ State <|-- ScriptableObject
         +Machine : StateMachine Machine
         +Parent : State
         +ActiveChild : State
+        +stateName : string
+        +_initialState : State
+        +Trasitions : List<State>
     }
 
 AliveState <|-- State
@@ -301,7 +334,7 @@ RunAwayState <|-- State
       class StateMachine {
         +Root : State Root
         +Transitions : TransitionManager
-        +Owner : FSM
+        +Owner : HFSM
         +started : bool started
     }
 
@@ -321,7 +354,7 @@ Implementación: Se adjuntan los scripts con el código fuente que implementan l
 | A | Cámaras | [CameraCycler](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/Gameplay/CameraCycler.cs) |
 | B, C | Acciones del agente | [BotGameplayActions](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/BotGameplayActions.cs) |
 | C, D | Definición de los estados | [Carpeta con todos los estados](https://github.com/IAV26-G09/IAV26-G09-P3/tree/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/States) |
-| D | Máquina de estados finita jerárquica | [FSM](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/FSM.cs) |
+| D | Máquina de estados finita jerárquica | [HFSM](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/HFSM.cs) |
 | D | Máquina de estados finita jerárquica | [State](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/State.cs) |
 | D | Máquina de estados finita jerárquica | [StateMachine](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/StateMachine.cs) |
 | D | Máquina de estados finita jerárquica | [TransitionManager](https://github.com/IAV26-G09/IAV26-G09-P3/blob/1987505ce5d31421eb2d23ec03879448808f8ba5/Assets/FPS/Scripts/StateMachine/TransitionManager.cs) |
@@ -338,7 +371,7 @@ Detallamos a continuación la información sobre las clases, *ScriptableObjects*
 #### [BotGameplayActions](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/BotGameplayActions.cs) 🟡
 Gestor de acciones disponibles a realizar por el agente a través de la lógica de sus estados con los que hacer uso del mundo virtual, como la selección y navegación por Waypoints a través de su NavMesh, gestión de armas e inventario o las variables de animaciones.
 
-#### [FSM](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/FSM.cs) 🟡
+#### [HFSM](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/HFSM.cs) 🟡
 Gestor de máquina de estados. MonoBehaviour desde el que se parte en el inicio de la práctica para situar en contexto a la máquina de estados en el entorno del juego, multijugador y deltaTime. Actualmente tiene definidos estados de prueba para implementar un movimiento aleatorio y parada básicos en el agente.
 
 - __TryPickRandomNavMeshPoint()__: Encuentra un punto aleatorio en la malla de navegación, usado para dárselo al agente como Waypoint hacia el que dirigirse.
@@ -372,6 +405,8 @@ Clase básica para un estado que a su vez puede contener estados y abstrae la l�
 - __GetInitialState()__: Devuelve el estado hijo con el cual se empieza por defecto cuando se entre a este estado. Si no tiene hijos es nulo.
 - __GetTransition()__: Devuelve el estado al que transicionar si es caso. Si no hay que hacerlo, es nulo.
 
+- __FindTransition()__: Busca un estado concreto en la lista de transiciones.
+
 Métodos virtuales a sobrescribir por los estados que implementen su propia lógica:
 - __OnEnter()__
 - __OnExit()__
@@ -391,7 +426,7 @@ Archivos .asset encargados de contener los datos del estado al que representen. 
 
 ### Prefabs
 #### Player 🟡
-En Player encontramos los componentes básicos para gestionar a un agente como pueden ser **Health**, **Character Controller**, **Actor**, **Damageable**, **Nav Mesh Agent**, etc., a estos se han añadido: **FSM** como gestor de máquina de estados, **BotGameplayActions** como gestor de acciones y **Camera Cycler** para gestionar el cambio de cámaras de la escena.
+En Player encontramos los componentes básicos para gestionar a un agente como pueden ser **Health**, **Character Controller**, **Actor**, **Damageable**, **Nav Mesh Agent**, etc., a estos se han añadido: **HFSM** como gestor de máquina de estados, **BotGameplayActions** como gestor de acciones y **Camera Cycler** para gestionar el cambio de cámaras de la escena.
 
 ## Pruebas y métricas
 ### Plan de pruebas
@@ -406,10 +441,6 @@ Serie corta y rápida posible de pruebas que pueden realizarse para verificar qu
 * **6 (E).** Observar en la interfaz de usuario las distintas métricas tomadas en tiempo real sobre las estadísticas del agente.
 * **7 (A, B, C, D, E).** Pulsar tecla Escape y volver a inicar la observación desde el paso 1.
 
-Las métricas que se tomarán serán:
-- El ratio de enemigos eliminados/veces que el bot ha sido eliminado en el contexto de una partida que dura X segundos y mantiene un ratio estable de Y fotogramas por segundo.
-
-<!--
 ### Métricas tomadas
 En un PC de estas características:
 - **CPU:** AMD Ryzen 7 5700G a 3.80 GHz
@@ -419,7 +450,17 @@ En un PC de estas características:
 - **Versión de Unity:** 6000.0.66f2
 
 Se han tomado las siguientes métricas:
--->
+- Ratio de enemigos eliminados/veces que el bot ha sido eliminado en el contexto de una partida que dura 60 segundos y mantiene un ratio estable de 60 fotogramas por segundo. En la partida se enfrentan el agente desarrollado durante la práctica contra un *HoverBot* y un *Turret*, los agentes con navegación se recolocan tras morir en puntos aleatorios del mapa para mayor precisión en la toma de métricas.
+
+```mermaid
+xychart-beta
+    title "Media de: Enemigos eliminados (asesinatos) - Veces que ha sido eliminado (muertes)"
+    x-axis [Asesinatos, Muertes]
+    y-axis "Media" 0 --> 10
+    bar [6, 1]
+```
+
+Este ratio en partida aumenta o disminye principalmente en función de dónde aparezca al inicio de la partida, se observa que en las partidas en las que aparece más veces en la sala donde se encuentra el enemigo *Turret* ya que este es más poderoso y al agente le cuesta más enfrentarse a él.
 
 ### Vídeo
 - Próximamente
