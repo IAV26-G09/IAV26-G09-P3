@@ -315,6 +315,9 @@ State <|-- ScriptableObject
         +Machine : StateMachine Machine
         +Parent : State
         +ActiveChild : State
+        +stateName : string
+        +_initialState : State
+        +Trasitions : List<State>
     }
 
 AliveState <|-- State
@@ -401,6 +404,8 @@ Clase básica para un estado que a su vez puede contener estados y abstrae la l�
 
 - __GetInitialState()__: Devuelve el estado hijo con el cual se empieza por defecto cuando se entre a este estado. Si no tiene hijos es nulo.
 - __GetTransition()__: Devuelve el estado al que transicionar si es caso. Si no hay que hacerlo, es nulo.
+
+- __FindTransition()__: Busca un estado concreto en la lista de transiciones.
 
 Métodos virtuales a sobrescribir por los estados que implementen su propia lógica:
 - __OnEnter()__
