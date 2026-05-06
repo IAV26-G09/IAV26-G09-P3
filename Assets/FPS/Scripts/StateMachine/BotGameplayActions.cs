@@ -109,7 +109,7 @@ namespace IAV26.G09.P3
         {
             // si es colision con algo que no nos interese no hace nada
             if (other.GetComponent<HealthPickup>() == null &&
-                other.GetComponent<EnemyController>() == null &&
+                other.GetComponentInParent<EnemyController>() == null &&
                 other.GetComponent<WeaponPickup>() == null)
             {
                 return;
@@ -143,7 +143,7 @@ namespace IAV26.G09.P3
                     {
                         EnemyController seenEnemy = hit.collider.GetComponent<EnemyController>();
                         if (seenEnemy == null)
-                            seenEnemy = hit.collider.GetComponent<EnemyController>();
+                            seenEnemy = hit.collider.GetComponentInParent<EnemyController>();
 
                         if (seenEnemy != null)
                         {
@@ -156,7 +156,7 @@ namespace IAV26.G09.P3
                     }
                     else
                     {
-                        EnemyController otherEnemy = other.GetComponent<EnemyController>();
+                        EnemyController otherEnemy = other.GetComponentInParent<EnemyController>();
                         if (otherEnemy != null && m_EnemyTransform == otherEnemy.transform)
                         {
                             SeesEnemy = false;
@@ -183,7 +183,7 @@ namespace IAV26.G09.P3
                     SeesHealth = false;
                     m_HealthTransform = null;
 
-                    EnemyController otherEnemy = other.GetComponent<EnemyController>();
+                    EnemyController otherEnemy = other.GetComponentInParent<EnemyController>();
                     if (otherEnemy != null && m_EnemyTransform == otherEnemy.transform)
                         SeesEnemy = false;
 
@@ -204,9 +204,9 @@ namespace IAV26.G09.P3
                 m_HealthTransform = null;
             }
 
-            else if (other.GetComponent<EnemyController>() != null)
+            else if (other.GetComponentInParent<EnemyController>() != null)
             {
-                EnemyController otherEnemy = other.GetComponent<EnemyController>();
+                EnemyController otherEnemy = other.GetComponentInParent<EnemyController>();
                 if (otherEnemy != null && m_EnemyTransform == otherEnemy.transform)
                 {
                     SeesEnemy = false;
