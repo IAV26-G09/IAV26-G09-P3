@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using Unity.FPS.Game;
+using Unity.FPS.Gameplay;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,6 +12,7 @@ namespace IAV26.G09.P3
         [SerializeField] private TMPro.TMP_Text muertes; // veces que se ha muerto
         [SerializeField] private TMPro.TMP_Text asesinatos; // veces que ha matado
         [SerializeField] private TMPro.TMP_Text fps; // fps
+        [SerializeField] private PlayerInputHandler playerInputHandler;
 
         // muertes/asesinatos
         int m_Muertes;
@@ -59,6 +61,9 @@ namespace IAV26.G09.P3
             {
                 fps.text = (((int)(m_lastFramerate * 100 + .5) / 100.0)).ToString("N0");
             }
+
+            if (playerInputHandler.GetChangeFrameRateDown())
+                ChangeFrameRate();
         }
 
         private void ChangeFrameRate()

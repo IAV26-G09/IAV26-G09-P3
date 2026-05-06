@@ -37,6 +37,13 @@ namespace IAV26.G09.P3
                 }
             }
 
+            if (a.SeesWeapon && a.WeaponTransform != null)
+            {
+                State e = FindTransition("Loot");
+                if (e != null)
+                    return e;
+            }
+
             return null;
         }
 
