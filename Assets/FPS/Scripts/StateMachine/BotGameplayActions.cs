@@ -23,7 +23,6 @@ namespace IAV26.G09.P3
 
         [SerializeField] float m_DefaultStoppingDistance = 1.5f;
 
-        [SerializeField] Transform[] m_PatrolWaypoints;
         NavMeshAgent m_NavMeshAgent;
 
         PlayerCharacterController m_PlayerCc;
@@ -80,7 +79,7 @@ namespace IAV26.G09.P3
 
         // -------- MUERTE
         [Header("Spawn, inicial y tras morir")]
-        [SerializeField] private Transform spawn;
+        [SerializeField] Transform[] m_Waypoints;
 
         void Awake()
         {
@@ -99,6 +98,11 @@ namespace IAV26.G09.P3
             m_Transform = GetComponent<Transform>();
 
             if (m_SphereCollider != null) m_SphereCollider.radius = radioVision;
+        }
+
+        void Start()
+        {
+            MoveToRandomSpawnPoint();
         }
 
         private void OnTriggerStay(Collider other)
@@ -325,7 +329,7 @@ namespace IAV26.G09.P3
 
         public void Respawn()
         {
-            m_Transform.position = spawn.position;
+            MoveToRandomSpawnPoint();
         }
 
         /// <summary>Ordena moverse hacia un punto del mundo (debe ser alcanzable por NavMesh).</summary>
@@ -625,20 +629,20 @@ namespace IAV26.G09.P3
 
         public int GetPatrolWaypointCount()
         {
-            return m_PatrolWaypoints.Length;
+            return m_Waypoints.Length;
         }
 
         public bool TryGetPatrolWaypointPosition(int index, out Vector3 position)
         {
             position = transform.position;
 
-            if (m_PatrolWaypoints == null)
+            if (m_Waypoints == null)
                 return false;
 
-            if (index < 0 || index >= m_PatrolWaypoints.Length)
+            if (index < 0 || index >= m_Waypoints.Length)
                 return false;
 
-            var waypoint = m_PatrolWaypoints[index];
+            var waypoint = m_Waypoints[index];
             if (waypoint == null)
                 return false;
 
@@ -662,6 +666,19 @@ namespace IAV26.G09.P3
             {
                 ForgetEnemy();
             }
+        }
+
+        bool MoveToRandomSpawnPoint()
+        {
+            if (m_Waypoints == null || m_Waypoints.Length == 0)
+                return false;
+
+            Transform point = m_Waypoints[UnityEngine.Random.Range(0, m_Waypoints.Length)];
+            if (point == null)
+                return false;
+
+            m_Transform.position = point.position;
+            return true;
         }
     }
 }
