@@ -316,6 +316,8 @@ namespace IAV26.G09.P3
                     if (lineal.magnitude > radioVision)
                     {
                         m_NavMeshAgent.speed = m_Speed;
+
+                        return;
                     }
 
                     lineal.Normalize();
