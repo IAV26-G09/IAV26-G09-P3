@@ -35,6 +35,7 @@ namespace Unity.FPS.Gameplay
         private InputAction m_ReloadAction;
         private InputAction m_NextWeaponAction;
         private InputAction m_ChangeCameraAction;
+        private InputAction m_ChangeFrameRateAction;
 
         [SerializeField]
         private bool botMode;
@@ -60,6 +61,7 @@ namespace Unity.FPS.Gameplay
             m_ReloadAction = InputSystem.actions.FindAction("Player/Reload");
             m_NextWeaponAction = InputSystem.actions.FindAction("Player/NextWeapon");
             m_ChangeCameraAction = InputSystem.actions.FindAction("Player/ChangeCamera");
+            m_ChangeFrameRateAction = InputSystem.actions.FindAction("Player/ChangeCamera");
             
             if (!botMode)
             {
@@ -87,6 +89,7 @@ namespace Unity.FPS.Gameplay
                 m_NextWeaponAction.Disable();
 
                 m_ChangeCameraAction.Enable();
+                m_ChangeFrameRateAction.Enable();
                 //m_ChangeCameraAction.Disable();
             }
         }
@@ -295,6 +298,16 @@ namespace Unity.FPS.Gameplay
             if (CanProcessInput())
             {
                 return m_ChangeCameraAction.WasPressedThisFrame();
+            }
+
+            return false;
+        }
+
+        public bool GetChangeFrameRateDown()
+        {
+            if (CanProcessInput())
+            {
+                return m_ChangeFrameRateAction.WasPressedThisFrame();
             }
 
             return false;
