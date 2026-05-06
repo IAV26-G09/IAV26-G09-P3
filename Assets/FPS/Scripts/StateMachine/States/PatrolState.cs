@@ -42,23 +42,6 @@ namespace IAV26.G09.P3
                 }
             }
 
-            if (a.LootRequest)
-            {
-                if (a.HasNearbyLoot())
-                {
-                    State e = FindTransition("Loot");
-                    if (e != null)
-                    {
-                        Debug.Log("SALGO DE ENGAGE Y VOY A LOOT");
-                        return e;
-                    }
-                }
-                else
-                {
-                    a.ClearLootRequest();
-                }
-            }
-
             return null;
         }
 

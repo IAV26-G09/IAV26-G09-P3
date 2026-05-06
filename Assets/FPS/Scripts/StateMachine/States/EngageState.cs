@@ -5,13 +5,9 @@ namespace IAV26.G09.P3
     [CreateAssetMenu(menuName = "HSM/States/Engage", fileName = "Engage")]
     public class Engage : State
     {
-        bool requestLootOnExit;
-
         protected override void OnEnter(BotGameplayActions a)
         {
             Debug.Log("ENTRANDO A ENGAGE");
-            requestLootOnExit = false;
-            a.ClearLootRequest();
         }
 
         protected override State GetInitialState()
@@ -21,12 +17,6 @@ namespace IAV26.G09.P3
 
         protected override void OnExit(BotGameplayActions a)
         {
-            if (requestLootOnExit)
-            {
-                a.RequestLoot();
-                requestLootOnExit = false;
-            }
-
             a.ResetView();
             //a.SeesEnemy = false;
             a.ForgetEnemy();
@@ -36,7 +26,6 @@ namespace IAV26.G09.P3
         {
             if (a.Health != null && a.Health.IsCritical())
             {
-                requestLootOnExit = false;
                 State e = FindTransition("Recover");
                 Debug.Log("VOY A RECOVER");
                 return e;
@@ -47,7 +36,6 @@ namespace IAV26.G09.P3
                 if (a.HasKnownEnemy())
                     return null;
 
-                requestLootOnExit = true;
                 State e = FindTransition("Patrol");
                 if (e != null)
                 {
