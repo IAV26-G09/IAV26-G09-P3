@@ -17,3 +17,7 @@ MonoBehaviour:
   _initialState: {fileID: 0}
   Transitions:
   - {fileID: 11400000, guid: ea8194c74acdc6249b6a2ba14fc193b0, type: 2}
+  - {fileID: 11400000, guid: e4fa278076ae060448ab86c1e3fb3a13, type: 2}
+  runAwayAngularSpeed: 720
+  normalAngularSpeed: 120
+  runAwayAcceleration: 55
