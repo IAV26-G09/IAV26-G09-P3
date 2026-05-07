@@ -226,24 +226,39 @@ stateDiagram
 ```
 
 #### BotRoot
+Estado raíz. Su estado inicial es AliveState.
 
 #### AliveState
+Se encuentra en este *supraestado* mientras este vivo. Desde este se gestiona la transición al DeadState. Su estado inicial es PatrolState.
+
 #### DeadState
+Al entrar se resetea el estado del agente. Su estado inicial es AliveState.
 
 #### PatrolState
+El estado base en el que se encuentra el agente cuando no tiene que reaccionar a ningún evento en el mundo. Patrulla las salas por los waypoints establecidos en busca de enemigos a los que atacar (transición a EngageState) o armas (estado LootState), además si se encuentra en este estado con salud crítica va a intentar recuperarse (transición a Recover).
 
 #### EngageState
+Si está patrullando y encuentra un enemigo se entra en este estado, cuyo estado inicial es PursueState. Si en algún momento estando en este estado se encuentra en estado crítico de vida el agente intentará recuperarse (transición a Recover) y si pierde de vista al agente se volverá a patrullar (transición a PatrolState).
+
 #### PursueState
+En este estado el agente intenta acercarse y encarar al enemigo que tenga detectado. Cuando esté suficientemente cerca intentará atacarle (transición a AttackState), si pierde al enemigo de vista vuelve a patrullar (transición a PatrolState) y si se encuentra en un estado de vida crítico intentará recuperarse (transición a Recover).
+
 #### AttackState
 En este estado hará contacto directo con el enemigo, encarando y disparándole mientras el agente se mueve de manera errática hacia los lados (*strafe*) para intentar esquivar las balas que le dispare el enemigo. Cuando agote la muncición del arma equipada, cambiará al siguiente arma con suficiente munición para disparar. Si no queda ninguna así, esperará un cierto tiempo hasta tener una cantidad de munición suficiente para una ráfaga de DPS considerable (*burst ammo*).
 
-Mientras tenga contacto visual con el enemigo se mantendrá en este estado, si no, irá a *Pursue* para perseguirle.
+Mientras tenga contacto visual con el enemigo se mantendrá en este estado, si no, irá a perseguirle (transición a PatrolState).
 
 #### RecoverState
+Se llega a este estado si el agente se encuentra en un estado crítico de vida. Su estado inicial es RunAwayState. Si deja de encontrarse en estado crítico de vida volverá a patrullar (transición a PatrolState) a no ser que vea a un enemigo en cuyo caso irá a atacarle (transición a Engage).
+
 #### RunAwayState
+Huirá en dirección contraria al enemigo que persiga al agente. Si en su huída ve una un botiquín (PickupHealth) irá a recogerlo (transición a HealState). Si se pierde al enemigo el agente volverá a patrullar (transición a PatrolState).
+
 #### HealState
+Encara y se mueve hacia el botiquín detectado, si lo pierde de vista o si ya se ha curado con él vuelve a patrullar (transición a PatrolState).
 
 #### LootState
+Encara al objeto a recoger (PickupHealth, PickupWeapon) y se dirige a recogerlo. Si ve a un enemigo se dispondrá a atacarle (transición a AttackState).
 
 ## Implementación
 **Tareas:**
