@@ -133,41 +133,6 @@ Para la implementación de la máquina de estados se ha visualizado e implementa
 
 > *A la izquierda, el diagrama de ejemplo, a la derecha, el diagrama de ejemplo desplegado en un árbol, tal como se trata en la implementación.*
 
-#### Diagrama de ejemplo
-```mermaid
-stateDiagram
-%%     direction LR
-    [*] --> Paseo
-      state Paseo {
-            %% direction LR
-            [*] --> Ocioso
-            Movimiento --> Ocioso: Al llegar a su destino
-            Ocioso --> Movimiento: Tras pasar algunos segundos
-      }
-      state Combate {
-            %% direction LR
-            [*] --> Disparar
-            Disparar 
-      }
-      Paseo --> Combate: Al tener contacto visual con el enemigo
-      Combate --> Paseo: Al perder contacto visual con el enemigo durante más de X segundos
-``` 
-#### Diagrama de ejemplo, desplegado
-```mermaid
-stateDiagram
-    [*] --> Paseo
-      Paseo
-      Paseo --> Movimiento
-      Paseo --> Ocioso
-
-      
-      Combate
-      Disparar 
-      Paseo --> Combate
-      Combate --> Paseo
-      Combate --> Disparar
-```
-
 La máquina de estados, [*StateMachine*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/StateMachine.cs), almacena una referencia al nodo raíz del árbol, será el primer nodo al que se entre al iniciar la máquina y con ello el *mecanismo* empieza a funcionar. La gestión de la ejecución de esta se delega en la clase [*HFSM*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/HFSM.cs) la cual se hace responsable de llamar al método *Tick(deltaTime)* de la *StateMachine*.
 
 Cada nodo en el árbol máquina de estados es entonces un estado, [*State*](https://github.com/IAV26-G09/IAV26-G09-P3/blob/main/Assets/FPS/Scripts/StateMachine/State.cs), con los métodos básicos:
