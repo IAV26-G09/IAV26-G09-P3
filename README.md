@@ -6,9 +6,13 @@
 > [!NOTE]
 > Changelog: 
 - [Instalación y uso](#instalación-y-uso), [Punto de partida](#punto-de-partida), [Planteamiento del problema](#planteamiento-del-problema)
-  - Actualizados según el cambio del enunciado.
+  - Actualizados según el cambio del enunciado y plantilla.
 - [Diseño de la solución](#diseño-de-la-solución)
   - Ampliada y clarificada la explicación sobre el diseño de la solución.
+  - Rellenadas las transiciones entre estados en el diagrama de estados
+  - Redactadas las explicaciones de los comportamientos del agente en cada estado.
+- [Implementación](#implementación)
+  - Rellenada tabla de tareas.
 - [Pruebas y métricas](#pruebas-y-métricas)
   - Rellenada sección de métricas y vídeo.
 
@@ -57,8 +61,10 @@ Al clicar al botón *Play* en la escena *IntroMenu*, con el que iniciará el jue
 - Prisioneros. Aparecen en alguno de los puntos de regeneración. Pueden moverse, disparar, apuntar, cambiar de arma y correr. Sus movimientos podrán ser implementados mediante mecánicas de IA.
 
 - Recogibles. Sólo los prisioneros pueden cogerlos o utilizarlos:
-1. Escopeta (shot gun), causa daño en un radio más ancho.
-2. Botiquines, para recuperar salud.
+1. Blaster, pistola por defecto.
+2. Escopeta (shotgun), causa daño en un radio más ancho.
+3. Launcher, lanza discos de cadencia lenta.
+4. Botiquines, para recuperar salud.
 
 - Vigilantes robóticos. Hay de dos tipos, las torretas (Turrets) y los robots flotantes (HoverBots). Las primeras son más poderosas pero permanecen ancladas en sus ubicaciones originales, mientras que los segundos son más débiles pero tienen movilidad. Todos los vigilantes robóticos disparan a los prisioneros y pueden matarlos. 
 
@@ -229,6 +235,9 @@ stateDiagram
 #### EngageState
 #### PursueState
 #### AttackState
+En este estado hará contacto directo con el enemigo, encarando y disparándole mientras el agente se mueve de manera errática hacia los lados (*strafe*) para intentar esquivar las balas que le dispare el enemigo. Cuando agote la muncición del arma equipada, cambiará al siguiente arma con suficiente munición para disparar. Si no queda ninguna así, esperará un cierto tiempo hasta tener una cantidad de munición suficiente para una ráfaga de DPS considerable (*burst ammo*).
+
+Mientras tenga contacto visual con el enemigo se mantendrá en este estado, si no, irá a *Pursue* para perseguirle.
 
 #### RecoverState
 #### RunAwayState
@@ -400,7 +409,7 @@ Archivos .asset encargados de contener los datos del estado al que representen. 
 
 ### Prefabs
 #### Player 🟡
-En Player encontramos los componentes básicos para gestionar a un agente como pueden ser **Health**, **Character Controller**, **Actor**, **Damageable**, **Nav Mesh Agent**, etc., a estos se han añadido: **HFSM** como gestor de máquina de estados, **BotGameplayActions** como gestor de acciones y **Camera Cycler** para gestionar el cambio de cámaras de la escena.
+En Player encontramos los componentes básicos para gestionar a un agente como pueden ser **Health**, **Character Controller**, **Actor**, **Damageable**, **Nav Mesh Agent**, **Player Input Handler**, etc., a estos se han añadido: **HFSM** como gestor de máquina de estados, **BotGameplayActions** como gestor de acciones y **Camera Cycler** para gestionar el cambio de cámaras de la escena.
 
 ## Pruebas y métricas
 ### Plan de pruebas
