@@ -63,13 +63,13 @@ namespace IAV26.G09.P3
             if (!a.HasEnemyTarget())
             {
                 if (a.HasKnownEnemy())
-                    return FindTransition("Pursue");
+                    return FindTransition("Engage");
 
                 return null;
             }
 
             if (!a.CanAttackCurrentEnemy(attackRange))
-                return FindTransition("Pursue");
+                return FindTransition("Engage");
 
             return null;
         }
