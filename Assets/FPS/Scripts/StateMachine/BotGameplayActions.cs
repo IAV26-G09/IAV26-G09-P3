@@ -32,6 +32,8 @@ namespace IAV26.G09.P3
         public NavMeshAgent NavMeshAgent =>
             m_NavMeshAgent; // Referencia al agente de navegación del bot (puede ser null antes de inicializar)
 
+        int m_LastWaypointIndex = -1;
+
         // -------- COMBATE
         [Header("Combate")]
         [Tooltip(
@@ -332,6 +334,43 @@ namespace IAV26.G09.P3
         public void Respawn()
         {
             MoveToRandomSpawnPoint();
+        }
+
+        public bool TryMoveToNextWaypoint()
+        {
+            int waypointCount = GetPatrolWaypointCount();
+            if (waypointCount <= 0)
+                return false;
+
+            int attempts = waypointCount;
+            while (attempts-- > 0)
+            {
+                int waypointIndex = PickRandomWaypointIndex(waypointCount);
+                if (!TryGetPatrolWaypointPosition(waypointIndex, out var waypointPosition))
+                    continue;
+
+                if (!TryMoveToWorldPosition(waypointPosition))
+                    continue;
+
+                m_LastWaypointIndex = waypointIndex;
+                return true;
+            }
+
+            return false;
+        }
+
+        int PickRandomWaypointIndex(int waypointCount)
+        {
+            if (waypointCount <= 1)
+                return 0;
+
+            int index = UnityEngine.Random.Range(0, waypointCount - 1);
+            if (m_LastWaypointIndex >= 0 && index >= m_LastWaypointIndex)
+            {
+                index++;
+            }
+
+            return index;
         }
 
         /// <summary>Ordena moverse hacia un punto del mundo (debe ser alcanzable por NavMesh).</summary>
