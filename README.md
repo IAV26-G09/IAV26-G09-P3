@@ -46,7 +46,7 @@ Este proyecto es una práctica de la asignatura de Inteligencia Artificial para 
 
 Las prisiones espaciales funcionan como potentes metáforas sobre vigilancia extrema y deshumanización de los reclusos. En estos casos los disturbios pueden originarse por auténticas crisis de supervivencia que se dan en las órbitas de planetas perdidos y otros rincones olvidados del universo.
 
-En torno a este tema vamos a desarrollar un prototipo centrado en modelar la toma de decisiones de distintos «prisioneros», que intervienen en disturbios armados que se producen en una prisión imaginaria ubicada en una de las lunas que orbitan en torno a Saturno.
+Entorno a este tema vamos a desarrollar un prototipo centrado en modelar la toma de decisiones de distintos «prisioneros», que intervienen en disturbios armados que se producen en una prisión imaginaria ubicada en una de las lunas que orbitan en torno a Saturno.
 
 Este prototipo sirve para poner en práctica una de las herramientas de toma de decisiones más populares de la industria: la máquina de estados, concretamente la máquina de estados jerárquica. Además se aprovechará la búsqueda de caminos mediante mallas de navegación y el movimiento mediante comportamientos de dirección y hasta algo de gestión sensorial, pero esta vez aprovechando todo lo posible las herramientas que Unity trae integradas.
 
@@ -246,7 +246,7 @@ En este estado el agente intenta acercarse y encarar al enemigo que tenga detect
 #### AttackState
 En este estado hará contacto directo con el enemigo, encarando y disparándole mientras el agente se mueve de manera errática hacia los lados (*strafe*) para intentar esquivar las balas que le dispare el enemigo. Cuando agote la muncición del arma equipada, cambiará al siguiente arma con suficiente munición para disparar. Si no queda ninguna así, esperará un cierto tiempo hasta tener una cantidad de munición suficiente para una ráfaga de DPS considerable (*burst ammo*).
 
-Mientras tenga contacto visual con el enemigo se mantendrá en este estado, si no, irá a perseguirle (transición a PatrolState).
+Mientras tenga contacto visual con el enemigo se mantendrá en este estado, si no, irá a perseguirle (transición a PursueState).
 
 #### RecoverState
 Se llega a este estado si el agente se encuentra en un estado crítico de vida. Su estado inicial es RunAwayState. Si deja de encontrarse en estado crítico de vida volverá a patrullar (transición a PatrolState) a no ser que vea a un enemigo en cuyo caso irá a atacarle (transición a Engage).
