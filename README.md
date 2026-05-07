@@ -182,32 +182,41 @@ BotRoot
 
 ```mermaid
 stateDiagram
-direction LR
     [*] --> Alive
-
     state Dead 
 
     state Alive {
+  direction LR
         [*] --> Patrol
 
         state Engage {
             [*] --> Pursue
-            Pursue --> Attack
-            Attack --> Pursue
+            Pursue --> Attack: LoS al enemigo
+            Attack --> Pursue: pérdida de LoS
         }
 
         state Recover {
             [*] --> RunAway
-            RunAway --> Heal
+            RunAway --> Heal: percepción curación
         }
 
         Loot
         Patrol
+
+        Patrol --> Recover: vida <= ratio crítico & ve vida
+        Patrol --> Engage: percepción enemigo
+        Patrol --> Loot: percepción de pickup
+
+        Engage --> Recover: vida <= ratio crítico
+        Engage --> Patrol: pérdida de enemigo
+
+        Loot --> Patrol: coge pickup
+        Recover --> Patrol: no estado crítico y no enemigo 
+        Recover --> Engage: no estado crítico y enemigo
     }
 
-    Alive --> Dead
-    Dead --> Alive
-
+    Alive --> Dead: vida <= 0
+    Dead --> Alive: respawn
 ```
 
 #### BotRoot
