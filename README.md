@@ -461,7 +461,6 @@ xychart-beta
 Este ratio en partida aumenta o disminye principalmente en función de dónde aparezca al inicio de la partida, se observa que en las partidas en las que aparece más veces en la sala donde se encuentra el enemigo *Turret* ya que este es más poderoso y al agente le cuesta más enfrentarse a él.
 
 ### Vídeo
-- Próximamente
 - [Vídeo demostración](https://www.youtube.com/watch?v=wYVlIFyWK8Y)
 
 ## Ampliaciones
